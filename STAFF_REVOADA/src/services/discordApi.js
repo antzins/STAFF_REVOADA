@@ -2,20 +2,9 @@ const { getEnv } = require("./env");
 
 const DISCORD_API = "https://discord.com/api";
 
-/**
- * Gera a URL de authorize do Discord dinamicamente.
- * redirect_uri é apenas o valor de DISCORD_REDIRECT_URI, codificado uma vez.
- */
 function buildAuthUrl(state) {
   const env = getEnv();
-  const authorizeUrl =
-    "https://discord.com/oauth2/authorize" +
-    "?client_id=" + env.DISCORD_CLIENT_ID +
-    "&response_type=code" +
-    "&redirect_uri=" + encodeURIComponent(env.DISCORD_REDIRECT_URI) +
-    "&scope=identify%20guilds.members.read" +
-    "&state=" + state;
-  return authorizeUrl;
+  return ("https://discord.com/oauth2/authorize?client_id=" + env.DISCORD_CLIENT_ID + "&response_type=code&redirect_uri=" + encodeURIComponent(env.DISCORD_REDIRECT_URI) + "&scope=identify%20guilds.members.read&state=" + state).trim();
 }
 
 async function exchangeCode(code) {
