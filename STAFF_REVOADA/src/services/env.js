@@ -14,10 +14,22 @@ const REQUIRED = [
 
 function requireEnv(name) {
   const value = process.env[name];
-  if (!value) {
+  if (value == null || String(value).trim() === "") {
     throw new Error(`Missing env: ${name}`);
   }
-  return value;
+  return String(value).trim();
+}
+
+function sanitizeOAuthEnv(name) {
+  const raw = process.env[name];
+  if (raw == null || String(raw).trim() === "") {
+    throw new Error(`${name} ausente ou inválido`);
+  }
+  const v = String(raw).trim().replace(/\s+/g, "");
+  if (!v) {
+    throw new Error(`${name} ausente ou inválido`);
+  }
+  return v;
 }
 
 function requirePresent(keys) {
@@ -47,9 +59,9 @@ function getEnv() {
     SESSION_SECRET: requireEnv("SESSION_SECRET"),
     DISCORD_BOT_TOKEN: requireEnv("DISCORD_BOT_TOKEN"),
     GUILD_ID: requireEnv("GUILD_ID"),
-    DISCORD_CLIENT_ID: requireEnv("DISCORD_CLIENT_ID"),
-    DISCORD_CLIENT_SECRET: requireEnv("DISCORD_CLIENT_SECRET"),
-    DISCORD_REDIRECT_URI: requireEnv("DISCORD_REDIRECT_URI"),
+    DISCORD_CLIENT_ID: sanitizeOAuthEnv("DISCORD_CLIENT_ID"),
+    DISCORD_CLIENT_SECRET: sanitizeOAuthEnv("DISCORD_CLIENT_SECRET"),
+    DISCORD_REDIRECT_URI: sanitizeOAuthEnv("DISCORD_REDIRECT_URI"),
     META_FALLBACK_ENABLED: parseBoolean(process.env.META_FALLBACK_ENABLED, false),
     STAFF_ROLES_METAS: parseCsv(process.env.STAFF_ROLES_METAS),
     STAFF_ALLOWED_ROLES: parseCsv(process.env.STAFF_ALLOWED_ROLES),

@@ -3,8 +3,12 @@ const { getEnv } = require("./env");
 const DISCORD_API = "https://discord.com/api";
 
 function buildAuthUrl(state) {
+  const raw = process.env.DISCORD_REDIRECT_URI;
+  if (raw == null) throw new Error("DISCORD_REDIRECT_URI ausente ou inválido");
+  const redirectUri = String(raw).trim().replace(/[\n\r\t\s]+/g, "");
+  if (!redirectUri) throw new Error("DISCORD_REDIRECT_URI ausente ou inválido");
   const env = getEnv();
-  return ("https://discord.com/oauth2/authorize?client_id=" + env.DISCORD_CLIENT_ID + "&response_type=code&redirect_uri=" + encodeURIComponent(env.DISCORD_REDIRECT_URI) + "&scope=identify%20guilds.members.read&state=" + state).trim();
+  return "https://discord.com/oauth2/authorize?client_id=" + env.DISCORD_CLIENT_ID + "&response_type=code&redirect_uri=" + encodeURIComponent(redirectUri) + "&scope=identify%20guilds.members.read&state=" + state;
 }
 
 async function exchangeCode(code) {
