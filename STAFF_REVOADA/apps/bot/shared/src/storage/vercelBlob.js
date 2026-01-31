@@ -19,7 +19,7 @@ function createProvider(env) {
     },
     async writeJson(key, data) {
       await put(key, JSON.stringify(data), {
-        access: "private",
+        access: "public",
         addRandomSuffix: false,
         token
       });

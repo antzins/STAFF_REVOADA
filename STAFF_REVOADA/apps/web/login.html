@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>REVOADA RJ | Login</title>
+  <script>
+    (function () {
+      try {
+        var last = localStorage.getItem("revoada_ui_last_user");
+        var key = last ? "revoada_ui_prefs:" + last : "revoada_ui_prefs:default";
+        var raw = localStorage.getItem(key) || localStorage.getItem("revoada_ui_prefs:default");
+        var prefs = raw ? JSON.parse(raw) : null;
+        var theme = prefs && prefs.theme ? prefs.theme : (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+        document.documentElement.setAttribute("data-theme", theme);
+        var fontScale = prefs && prefs.fontScale ? prefs.fontScale : 1;
+        document.documentElement.style.setProperty("--font-scale", fontScale);
+        var density = prefs && prefs.density ? prefs.density : "comfortable";
+        var densityPx = density === "compact" ? "8px" : "14px";
+        document.documentElement.style.setProperty("--density", densityPx);
+      } catch (e) {}
+    })();
+  </script>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body data-public="true">
+  <div class="login-page">
+    <div class="login-card">
+      <div class="badge">Acesso Staff</div>
+      <h1>Metas REVOADA RJ</h1>
+      <p>Faça login com o Discord para gerenciar as metas da equipe. O acesso é permitido apenas para cargos autorizados.</p>
+      <button id="loginDiscord">Entrar com Discord</button>
+      <button class="secondary" id="mockLogin">Simular login (teste)</button>
+      <div style="font-size:0.85rem;color:var(--muted)">
+        Autenticação segura via OAuth2. Logs e auditorias salvos em JSON.
+      </div>
+    </div>
+  </div>
+  <script>
+    document.getElementById("mockLogin").addEventListener("click", function () {
+      localStorage.setItem("revoada_mock_login", "true");
+      localStorage.setItem("revoada_mock_user_id", "mock-user");
+      localStorage.setItem("revoada_mock_user_name", "Mock Staff");
+      window.location.href = "index.html";
+    });
+
+    document.getElementById("loginDiscord").addEventListener("click", function () {
+      sessionStorage.setItem("revoada_auth_pending", "true");
+      window.location.href = "api/auth/login";
+    });
+  </script>
+  <script src="js/app.js"></script>
+  <script>
+    (function () {
+      const params = new URLSearchParams(window.location.search);
+      const auth = params.get("auth");
+      const reason = params.get("reason");
+      const pending = sessionStorage.getItem("revoada_auth_pending") === "true";
+
+      function cleanupParams() {
+        if (window.history && window.history.replaceState) {
+          window.history.replaceState({}, document.title, "login.html");
+        }
+      }
+
+      function showError(message) {
+        if (window.app && app.showToast) {
+          app.showToast("Acesso negado", message, "error");
+        }
+      }
+
+      if (auth === "error") {
+        sessionStorage.removeItem("revoada_auth_pending");
+        const messages = {
+          state: "Sessão inválida ou expirada. Tente novamente.",
+          oauth: "Falha ao validar no Discord. Tente novamente.",
+          forbidden: "Você não possui permissão para acessar."
+        };
+        showError(messages[reason] || "Não foi possível autenticar.");
+        cleanupParams();
+        return;
+      }
+
+      if (auth === "check") {
+        sessionStorage.removeItem("revoada_auth_pending");
+        if (window.app && app.showToast) {
+          app.showToast("Validando", "Validando acesso com o Discord...", "info");
+        }
+        fetch("/api/me", { credentials: "include" })
+          .then(async (response) => {
+            const data = await response.json().catch(() => ({}));
+            if (!response.ok) {
+              const message = (data && (data.message || data.error)) || "Acesso negado.";
+              throw new Error(typeof message === "string" ? message : "Acesso negado.");
+            }
+            if (window.app && app.showToast) {
+              app.showToast("Sucesso", "Acesso liberado. Redirecionando...", "success");
+            }
+            setTimeout(() => {
+              window.location.href = "index.html";
+            }, 900);
+          })
+          .catch((error) => {
+            showError(error.message || "Acesso negado.");
+          })
+          .finally(() => {
+            cleanupParams();
+          });
+        return;
+      }
+
+      if (pending) {
+        sessionStorage.removeItem("revoada_auth_pending");
+        if (window.app && app.showToast) {
+          app.showToast("Aguardando", "Complete a autorização no Discord.", "info");
+        }
+        cleanupParams();
+      }
+    })();
+  </script>
+</body>
+</html>

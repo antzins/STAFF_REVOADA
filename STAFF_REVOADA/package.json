@@ -7,9 +7,9 @@
     "node": "22.x"
   },
   "scripts": {
-    "dev": "node src/bot/index.js",
-    "bot": "node src/bot/index.js",
-    "register:commands": "node src/bot/registerCommands.js"
+    "dev": "node apps/bot/src/bot/index.js",
+    "bot": "node apps/bot/src/bot/index.js",
+    "register:commands": "node apps/bot/src/bot/registerCommands.js"
   },
   "dependencies": {
     "@vercel/blob": "^0.26.0",

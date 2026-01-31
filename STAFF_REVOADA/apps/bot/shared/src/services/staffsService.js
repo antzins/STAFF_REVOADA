@@ -60,6 +60,47 @@ async function saveRoleCatalog(roles) {
   await storage.writeJson(ROLE_CATALOG_KEY, { roles, updatedAt: Date.now() });
 }
 
+function normalizeRole(role) {
+  if (!role) return null;
+  const id = String(role.id || role.roleId || role.role_id || "").trim();
+  if (!id) return null;
+  const name = String(role.name || role.label || role.id || "").trim();
+  return { id, name: name || id };
+}
+
+function mergeRoleLists(base = [], incoming = []) {
+  const map = new Map();
+  base.forEach((role) => {
+    const normalized = normalizeRole(role);
+    if (normalized) map.set(normalized.id, normalized);
+  });
+  incoming.forEach((role) => {
+    const normalized = normalizeRole(role);
+    if (normalized) map.set(normalized.id, normalized);
+  });
+  return Array.from(map.values());
+}
+
+function extractRolesFromStaffEntries(entries = []) {
+  const roles = [];
+  entries.forEach((entry) => {
+    (entry.roleNames || []).forEach((role) => {
+      const normalized = normalizeRole(role);
+      if (normalized) roles.push(normalized);
+    });
+  });
+  return roles;
+}
+
+async function mergeRoleCatalog(roles) {
+  if (!Array.isArray(roles) || roles.length === 0) return;
+  const existing = await getRoleCatalog();
+  const merged = mergeRoleLists(existing || [], roles);
+  if (merged.length === 0) return;
+  const storage = getStorage();
+  await storage.writeJson(ROLE_CATALOG_KEY, { roles: merged, updatedAt: Date.now() });
+}
+
 module.exports = {
   STAFFS_KEY,
   ROLE_CATALOG_KEY,
@@ -69,5 +110,7 @@ module.exports = {
   removeStaff,
   listStaffs,
   getRoleCatalog,
-  saveRoleCatalog
+  saveRoleCatalog,
+  mergeRoleCatalog,
+  extractRolesFromStaffEntries
 };

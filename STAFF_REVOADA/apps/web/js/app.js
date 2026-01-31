@@ -175,6 +175,9 @@ const app = (() => {
   }
 
   async function loadUser() {
+    if (document.body.dataset.public) {
+      return;
+    }
     const mockEnabled = localStorage.getItem("revoada_mock_login") === "true";
     if (mockEnabled) {
       const mockUser = {

@@ -1,5 +1,6 @@
-﻿const { REST, Routes, SlashCommandBuilder } = require("discord.js");
-const { getEnv } = require("../services/env");
+require("dotenv").config({ path: require("path").resolve(__dirname, "../../../../.env") });
+const { REST, Routes, SlashCommandBuilder } = require("discord.js");
+const { getEnv } = require("../../shared/src/services/env");
 
 const env = getEnv();
 

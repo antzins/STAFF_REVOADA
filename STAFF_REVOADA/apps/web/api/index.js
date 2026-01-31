@@ -1,15 +1,15 @@
 const crypto = require("crypto");
-const { requireAuth, createSession, setSessionCookie, clearSessionCookie, getAllowedRoles, requireRole, isAdmin } = require("../src/services/authService");
-const { buildAuthUrl, exchangeCode, fetchUser, fetchGuildMember } = require("../src/services/discordApi");
-const { getConfig, saveConfig } = require("../src/services/configService");
-const { readJsonBody } = require("../src/services/body");
-const { sendJson, handleError } = require("../src/services/http");
-const { getEnv } = require("../src/services/env");
-const { getStorage } = require("../src/storage");
-const { getUsuario, getRanking, getResumo } = require("../src/services/dataService");
-const { getMetasByMonth, listAvailableMonths } = require("../src/services/metasByMonth");
-const { listStaffs, upsertStaff, removeStaff, getRoleCatalog, saveRoleCatalog } = require("../src/services/staffsService");
-const { rotateMonth } = require("../src/services/backupService");
+const { requireAuth, createSession, setSessionCookie, clearSessionCookie, getAllowedRoles, requireRole, isAdmin } = require("../shared/src/services/authService");
+const { buildAuthUrl, exchangeCode, fetchUser, fetchGuildMember } = require("../shared/src/services/discordApi");
+const { getConfig, saveConfig } = require("../shared/src/services/configService");
+const { readJsonBody } = require("../shared/src/services/body");
+const { sendJson, handleError } = require("../shared/src/services/http");
+const { getEnv } = require("../shared/src/services/env");
+const { getStorage } = require("../shared/src/storage");
+const { getUsuario, getRanking, getResumo } = require("../shared/src/services/dataService");
+const { getMetasByMonth, listAvailableMonths } = require("../shared/src/services/metasByMonth");
+const { listStaffs, upsertStaff, removeStaff, getRoleCatalog, saveRoleCatalog, mergeRoleCatalog, extractRolesFromStaffEntries } = require("../shared/src/services/staffsService");
+const { rotateMonth } = require("../shared/src/services/backupService");
 
 function getPathSegments(req) {
   const url = new URL(req.url || "", `http://${req.headers?.host || "localhost"}`);
@@ -73,19 +73,33 @@ async function handleAuthCallback(req, res) {
   const cookieState = getCookieValue(req.headers.cookie || "", "revoada_oauth_state");
 
   if (!code || !state || !cookieState || state !== cookieState) {
-    sendJson(res, 400, { error: true, message: "OAuth state inválido." });
+    res.statusCode = 302;
+    res.setHeader("Location", "/login.html?auth=error&reason=state");
+    res.end();
     return;
   }
 
-  const tokenData = await exchangeCode(code);
-  const user = await fetchUser(tokenData.access_token);
-  const member = await fetchGuildMember(tokenData.access_token);
+  let tokenData = null;
+  let user = null;
+  let member = null;
+  try {
+    tokenData = await exchangeCode(code);
+    user = await fetchUser(tokenData.access_token);
+    member = await fetchGuildMember(tokenData.access_token);
+  } catch (error) {
+    res.statusCode = 302;
+    res.setHeader("Location", "/login.html?auth=error&reason=oauth");
+    res.end();
+    return;
+  }
 
   const allowedRoles = getAllowedRoles();
   const hasAccess = allowedRoles.length === 0 || member.roles.some((role) => allowedRoles.includes(role));
 
   if (!hasAccess) {
-    sendJson(res, 403, { error: true, message: "Acesso negado: você não possui permissão." });
+    res.statusCode = 302;
+    res.setHeader("Location", "/login.html?auth=error&reason=forbidden");
+    res.end();
     return;
   }
 
@@ -98,7 +112,7 @@ async function handleAuthCallback(req, res) {
 
   setSessionCookie(res, session);
   res.statusCode = 302;
-  res.setHeader("Location", "/index.html");
+  res.setHeader("Location", "/login.html?auth=check");
   res.end();
 }
 
@@ -212,6 +226,13 @@ async function handleStaffRoles(req, res) {
     sendJson(res, 200, { roles: catalog });
     return;
   }
+  const staffs = await listStaffs();
+  const derived = extractRolesFromStaffEntries(staffs);
+  if (derived.length > 0) {
+    await saveRoleCatalog(derived);
+    sendJson(res, 200, { roles: derived });
+    return;
+  }
   const env = getEnv();
   const ids = env.STAFF_ROLES_METAS || [];
   const labels = env.STAFF_ROLES_LABELS || [];
@@ -247,11 +268,14 @@ async function handleInternalStaffsSync(req, res) {
     return;
   }
   const results = [];
+  const roleCatalogItems = [];
   for (const item of body.items) {
     if (!item.discordId) continue;
     const saved = await upsertStaff(item);
     results.push(saved);
+    roleCatalogItems.push(...extractRolesFromStaffEntries([item]));
   }
+  await mergeRoleCatalog(roleCatalogItems);
   sendJson(res, 200, { ok: true, count: results.length });
 }
 
@@ -273,6 +297,7 @@ async function handleInternalStaffsUpsert(req, res) {
     return;
   }
   const saved = await upsertStaff(body);
+  await mergeRoleCatalog(extractRolesFromStaffEntries([body]));
   sendJson(res, 200, { ok: true, action: "upsert", staff: saved });
 }
 

@@ -1,10 +1,11 @@
+require("dotenv").config({ path: require("path").resolve(__dirname, "../../../../.env") });
 const { Client, GatewayIntentBits, Partials, EmbedBuilder } = require("discord.js");
-const { getEnv } = require("../services/env");
-const { detectMetaType } = require("../services/detectService");
-const { registerActions, summarizeUser, getMetas } = require("../services/metaService");
-const { getRanking } = require("../services/dataService");
-const { backupActive, rotateMonth, ensureRotationIfNeeded } = require("../services/backupService");
-const { META_TYPES } = require("../services/metaTypes");
+const { getEnv } = require("../../shared/src/services/env");
+const { detectMetaType } = require("../../shared/src/services/detectService");
+const { registerActions, summarizeUser, getMetas } = require("../../shared/src/services/metaService");
+const { getRanking } = require("../../shared/src/services/dataService");
+const { backupActive, rotateMonth, ensureRotationIfNeeded } = require("../../shared/src/services/backupService");
+const { META_TYPES } = require("../../shared/src/services/metaTypes");
 
 const env = getEnv();
 
@@ -98,16 +99,35 @@ function getPrimaryStaffRole(member) {
   return env.STAFF_ROLES_METAS.find((roleId) => member.roles.cache.has(roleId));
 }
 
+function buildStaffPayload(member) {
+  const roleNames = getStaffRoleNames(member);
+  const primaryRole = roleNames[0];
+  const cargoLabel = primaryRole ? primaryRole.name : "";
+  const avatarUrl = member.user?.displayAvatarURL({ extension: "png", size: 128 }) || "";
+  return {
+    acao: "upsert",
+    discordId: member.id,
+    nome: member.displayName,
+    idServidor: member.displayName,
+    roles: member.roles.cache.map((role) => role.id),
+    roleNames,
+    cargoLabel,
+    avatarUrl
+  };
+}
+
 async function syncStaffToApi(payload) {
   if (!env.STAFF_SYNC_URL || !env.INTERNAL_BOT_KEY) return;
   try {
+    const isBulk = /\/sync\/?$/i.test(env.STAFF_SYNC_URL);
+    const body = isBulk ? { items: [payload] } : payload;
     await fetch(env.STAFF_SYNC_URL, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         "X-Internal-Key": env.INTERNAL_BOT_KEY
       },
-      body: JSON.stringify(payload)
+      body: JSON.stringify(body)
     });
   } catch (error) {
     console.error("Falha ao sincronizar staff:", error);
@@ -116,7 +136,7 @@ async function syncStaffToApi(payload) {
 
 function getRoleCatalogUrl() {
   if (!env.STAFF_SYNC_URL) return null;
-  return String(env.STAFF_SYNC_URL).replace(/\/sync\/?$/, "") + "/role-catalog";
+  return String(env.STAFF_SYNC_URL).replace(/\/(sync|upsert)\/?$/, "") + "/role-catalog";
 }
 
 async function pushRoleCatalogToApi(guild) {
@@ -155,6 +175,36 @@ function getStaffRoleNames(member) {
     }));
 }
 
+async function syncAllStaffMembers(guild) {
+  if (!env.STAFF_SYNC_URL || !env.INTERNAL_BOT_KEY) return;
+  const isBulk = /\/sync\/?$/i.test(env.STAFF_SYNC_URL);
+  const members = await guild.members.fetch();
+  const items = [];
+  for (const member of members.values()) {
+    if (!getPrimaryStaffRole(member)) continue;
+    items.push(buildStaffPayload(member));
+  }
+  if (!items.length) return;
+  if (isBulk) {
+    try {
+      await fetch(env.STAFF_SYNC_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Internal-Key": env.INTERNAL_BOT_KEY
+        },
+        body: JSON.stringify({ items })
+      });
+    } catch (error) {
+      console.error("Falha ao sincronizar staff (bulk):", error);
+    }
+    return;
+  }
+  for (const item of items) {
+    await syncStaffToApi(item);
+  }
+}
+
 client.on("guildMemberUpdate", async (oldMember, newMember) => {
   try {
     const staffRoleId = getPrimaryStaffRole(newMember);
@@ -168,20 +218,7 @@ client.on("guildMemberUpdate", async (oldMember, newMember) => {
       return;
     }
 
-    const roleNames = getStaffRoleNames(newMember);
-    const primaryRole = roleNames[0];
-    const cargoLabel = primaryRole ? primaryRole.name : "";
-    const avatarUrl = newMember.user?.displayAvatarURL({ extension: "png", size: 128 }) || "";
-    await syncStaffToApi({
-      acao: "upsert",
-      discordId: newMember.id,
-      nome: newMember.displayName,
-      idServidor: newMember.displayName,
-      roles: newMember.roles.cache.map((role) => role.id),
-      roleNames,
-      cargoLabel,
-      avatarUrl
-    });
+    await syncStaffToApi(buildStaffPayload(newMember));
   } catch (error) {
     console.error("Erro no guildMemberUpdate:", error);
   }
@@ -311,6 +348,7 @@ client.once("ready", async () => {
   const guild = await client.guilds.fetch(env.GUILD_ID).catch(() => null);
   if (guild) {
     await pushRoleCatalogToApi(guild);
+    await syncAllStaffMembers(guild);
   }
 
   setInterval(async () => {

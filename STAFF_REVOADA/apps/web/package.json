@@ -1,0 +1,13 @@
+{
+  "name": "revoada-web",
+  "version": "1.0.0",
+  "private": true,
+  "type": "commonjs",
+  "engines": {
+    "node": "22.x"
+  },
+  "dependencies": {
+    "@vercel/blob": "^0.26.0",
+    "jsonwebtoken": "^9.0.2"
+  }
+}

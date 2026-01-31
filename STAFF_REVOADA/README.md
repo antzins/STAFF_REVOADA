@@ -11,11 +11,17 @@ Projeto leve para gerenciamento de metas da staff do GTA RP REVOADA RJ, com pain
 
 ## Estrutura
 ```
-api/
-src/bot/
-src/services/
-src/storage/
-public/
+apps/
+  bot/
+    src/bot/
+    shared/src/
+  web/
+    api/
+    css/
+    js/
+    *.html
+    vercel.json
+    shared/src/
 data/ (dev)
 ```
 
@@ -84,12 +90,13 @@ BLOB_READ_WRITE_TOKEN=
 ```
 
 ## Como rodar local
-1. Instale dependências:
+1. Instale dependências do bot:
 ```
+cd apps/bot
 npm install
 ```
 
-2. Configure `.env` com as variáveis acima.
+2. Configure `.env` do bot com as variáveis acima.
 
 3. Registre os slash commands:
 ```
@@ -101,10 +108,15 @@ npm run register:commands
 npm run bot
 ```
 
-5. Para simular a API localmente, use `vercel dev` (recomendado) ou qualquer servidor estático + `node` para testar endpoints.
+5. Para a API e site:
+```
+cd ../web
+npm install
+```
+Use `vercel dev` (recomendado) para simular o ambiente do Vercel.
 
 ## Deploy no Vercel
-- Faça deploy do repositório.
+- Configure o projeto apontando para a pasta `apps/web`.
 - Configure as ENV vars no painel do Vercel.
 - Configure `STORAGE_MODE=blob` e `BLOB_READ_WRITE_TOKEN`.
 - O bot precisa rodar separado do Vercel (ex.: VPS/Render/Fly). O painel web e APIs ficam no Vercel.
