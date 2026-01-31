@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "private": true,
   "type": "commonjs",
+  "engines": {
+    "node": "22.x"
+  },
   "scripts": {
     "dev": "node src/bot/index.js",
     "bot": "node src/bot/index.js",
