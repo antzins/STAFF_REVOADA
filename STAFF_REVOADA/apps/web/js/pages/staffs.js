@@ -26,7 +26,8 @@
       const resolved = resolveRoleName(item);
       resolved.forEach((n) => fromData.add(n));
     });
-    const allCargos = Array.from(new Set([...namesFromEnv, ...fromData])).sort();
+    const extra = Array.from(fromData).filter((n) => !namesFromEnv.includes(n));
+    const allCargos = [...namesFromEnv, ...extra];
     allCargos.forEach((cargo) => {
       const option = document.createElement("option");
       option.value = cargo;

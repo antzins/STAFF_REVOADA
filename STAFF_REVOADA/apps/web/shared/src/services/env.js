@@ -42,9 +42,14 @@ function requirePresent(keys) {
   }
 }
 
+const parseIdList = (value) =>
+  (value || "")
+    .split(",")
+    .map((id) => id.trim())
+    .filter(Boolean);
+
 function parseCsv(value) {
-  if (!value) return [];
-  return value.split(",").map((v) => v.trim()).filter(Boolean);
+  return parseIdList(value);
 }
 
 function parseBoolean(value, fallback = false) {
@@ -63,14 +68,13 @@ function getEnv() {
     DISCORD_CLIENT_SECRET: sanitizeOAuthEnv("DISCORD_CLIENT_SECRET"),
     DISCORD_REDIRECT_URI: sanitizeOAuthEnv("DISCORD_REDIRECT_URI"),
     META_FALLBACK_ENABLED: parseBoolean(process.env.META_FALLBACK_ENABLED, false),
-    STAFF_ROLES_METAS: parseCsv(process.env.STAFF_ROLES_METAS),
-    STAFF_ROLES_LABELS: parseCsv(process.env.STAFF_ROLES_LABELS || ""),
-    STAFF_ALLOWED_ROLES: parseCsv(process.env.STAFF_ALLOWED_ROLES),
-    CH_REVISAO_ALLOWED_CHANNELS: parseCsv(process.env.CH_REVISAO_ALLOWED_CHANNELS),
+    STAFF_ROLES_METAS: parseIdList(process.env.STAFF_ROLES_METAS),
+    STAFF_ALLOWED_ROLES: parseIdList(process.env.STAFF_ALLOWED_ROLES),
+    CH_REVISAO_ALLOWED_CHANNELS: parseIdList(process.env.CH_REVISAO_ALLOWED_CHANNELS),
     REVISAO_KEYWORDS: parseCsv(process.env.REVISAO_KEYWORDS),
     META_REVISAO_REQUIRES_KEYWORD: parseBoolean(process.env.META_REVISAO_REQUIRES_KEYWORD, false),
     META_REVISAO_COUNT_BOTS: parseBoolean(process.env.META_REVISAO_COUNT_BOTS, false),
-    CH_DENUNCIA_ALLOWED_CHANNELS: parseCsv(process.env.CH_DENUNCIA_ALLOWED_CHANNELS),
+    CH_DENUNCIA_ALLOWED_CHANNELS: parseIdList(process.env.CH_DENUNCIA_ALLOWED_CHANNELS),
     DENUNCIA_KEYWORDS: parseCsv(process.env.DENUNCIA_KEYWORDS),
     META_DENUNCIA_REQUIRES_KEYWORD: parseBoolean(process.env.META_DENUNCIA_REQUIRES_KEYWORD, false),
     META_DENUNCIA_COUNT_BOTS: parseBoolean(process.env.META_DENUNCIA_COUNT_BOTS, false),
@@ -86,4 +90,4 @@ function getEnv() {
   };
 }
 
-module.exports = { getEnv, parseCsv, parseBoolean };
+module.exports = { getEnv, parseCsv, parseBoolean, parseIdList };
