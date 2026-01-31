@@ -1,4 +1,4 @@
-﻿const { Client, GatewayIntentBits, Partials, EmbedBuilder } = require("discord.js");
+const { Client, GatewayIntentBits, Partials, EmbedBuilder } = require("discord.js");
 const { getEnv } = require("../services/env");
 const { detectMetaType } = require("../services/detectService");
 const { registerActions, summarizeUser, getMetas } = require("../services/metaService");
@@ -114,6 +114,15 @@ async function syncStaffToApi(payload) {
   }
 }
 
+function getStaffRoleNames(member) {
+  return env.STAFF_ROLES_METAS
+    .filter((roleId) => member.roles.cache.has(roleId))
+    .map((roleId) => ({
+      id: roleId,
+      name: member.roles.cache.get(roleId)?.name || roleId
+    }));
+}
+
 client.on("guildMemberUpdate", async (oldMember, newMember) => {
   try {
     const staffRoleId = getPrimaryStaffRole(newMember);
@@ -127,7 +136,9 @@ client.on("guildMemberUpdate", async (oldMember, newMember) => {
       return;
     }
 
-    const roleName = newMember.roles.cache.get(staffRoleId)?.name || "";
+    const roleNames = getStaffRoleNames(newMember);
+    const primaryRole = roleNames[0];
+    const cargoLabel = primaryRole ? primaryRole.name : "";
     const avatarUrl = newMember.user?.displayAvatarURL({ extension: "png", size: 128 }) || "";
     await syncStaffToApi({
       acao: "upsert",
@@ -135,7 +146,8 @@ client.on("guildMemberUpdate", async (oldMember, newMember) => {
       nome: newMember.displayName,
       idServidor: newMember.displayName,
       roles: newMember.roles.cache.map((role) => role.id),
-      cargoLabel: roleName,
+      roleNames,
+      cargoLabel,
       avatarUrl
     });
   } catch (error) {

@@ -14,12 +14,13 @@ async function saveStaffsMap(data) {
   await storage.writeJson(STAFFS_KEY, data);
 }
 
-function buildEntry({ discordId, nome, idServidor, roles, cargoLabel, avatarUrl }) {
+function buildEntry({ discordId, nome, idServidor, roles, roleNames, cargoLabel, avatarUrl }) {
   return {
     discordId,
     nome,
     idServidor: idServidor || null,
     roles: roles || [],
+    roleNames: Array.isArray(roleNames) ? roleNames : [],
     cargoLabel: cargoLabel || "",
     avatarUrl: avatarUrl || "",
     updatedAt: Date.now()
