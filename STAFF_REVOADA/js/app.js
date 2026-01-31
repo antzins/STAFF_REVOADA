@@ -1,4 +1,4 @@
-﻿const app = (() => {
+const app = (() => {
   const state = {
     user: null,
     prefs: null
@@ -38,9 +38,9 @@
     });
     const data = await response.json().catch(() => ({}));
     if (!response.ok) {
-      const message = data.message || "Erro inesperado.";
-      showToast("Falha", message, "error");
-      throw new Error(message);
+      const message = (data && (data.message || data.error)) || "Erro inesperado.";
+      showToast("Falha", typeof message === "string" ? message : "Erro inesperado.", "error");
+      throw new Error(typeof message === "string" ? message : "Erro inesperado.");
     }
     return data;
   }

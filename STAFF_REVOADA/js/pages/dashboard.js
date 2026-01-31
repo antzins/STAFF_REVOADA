@@ -1,4 +1,4 @@
-﻿(async () => {
+(async () => {
   const mesSelect = document.getElementById("mesSelectDashboard");
 
   async function loadMeses() {
@@ -19,10 +19,11 @@
     app.setSelectedMonth(mes);
     const resumo = await app.apiFetch(`/api/resumo?mes=${encodeURIComponent(mes)}`);
     document.getElementById("totalAcoes").textContent = resumo.totalAcoes;
-    document.getElementById("totalAceitos").textContent = resumo.porTipo.TICKET_ACEITO || 0;
-    document.getElementById("totalNegados").textContent = resumo.porTipo.TICKET_NEGADO || 0;
     document.getElementById("totalRevisoes").textContent = resumo.porTipo.REVISAO || 0;
-    document.getElementById("totalBans").textContent = resumo.porTipo.BAN || 0;
+    document.getElementById("totalDenuncias").textContent = resumo.porTipo.DENUNCIA || 0;
+    document.getElementById("totalBanHack").textContent = resumo.porTipo.BAN_HACK || 0;
+    const totalBansEl = document.getElementById("totalBans");
+    if (totalBansEl) totalBansEl.textContent = resumo.porTipo.BAN || 0;
     document.getElementById("totalUsuarios").textContent = resumo.totalUsuarios;
   }
 

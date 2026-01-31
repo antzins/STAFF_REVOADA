@@ -1,15 +1,15 @@
-﻿(async () => {
+(async () => {
   const form = document.getElementById("configForm");
 
   const fields = {
     fallbackEnabled: document.getElementById("fallbackEnabled"),
-    tipoTicketAceito: document.getElementById("tipoTicketAceito"),
-    tipoTicketNegado: document.getElementById("tipoTicketNegado"),
     tipoRevisao: document.getElementById("tipoRevisao"),
+    tipoDenuncia: document.getElementById("tipoDenuncia"),
+    tipoBanHack: document.getElementById("tipoBanHack"),
     tipoBan: document.getElementById("tipoBan"),
-    tagsTicketAceito: document.getElementById("tagsTicketAceito"),
-    tagsTicketNegado: document.getElementById("tagsTicketNegado"),
     tagsRevisao: document.getElementById("tagsRevisao"),
+    tagsDenuncia: document.getElementById("tagsDenuncia"),
+    tagsBanHack: document.getElementById("tagsBanHack"),
     tagsBan: document.getElementById("tagsBan")
   };
 
@@ -26,14 +26,14 @@
 
   const config = await app.apiFetch("/api/config");
   fields.fallbackEnabled.checked = config.metaFallbackEnabled;
-  fields.tipoTicketAceito.checked = config.enabledMetaTypes.TICKET_ACEITO;
-  fields.tipoTicketNegado.checked = config.enabledMetaTypes.TICKET_NEGADO;
   fields.tipoRevisao.checked = config.enabledMetaTypes.REVISAO;
+  fields.tipoDenuncia.checked = config.enabledMetaTypes.DENUNCIA;
+  fields.tipoBanHack.checked = config.enabledMetaTypes.BAN_HACK;
   fields.tipoBan.checked = config.enabledMetaTypes.BAN;
 
-  fields.tagsTicketAceito.value = arrayToLines(config.fallbackTags.TICKET_ACEITO);
-  fields.tagsTicketNegado.value = arrayToLines(config.fallbackTags.TICKET_NEGADO);
   fields.tagsRevisao.value = arrayToLines(config.fallbackTags.REVISAO);
+  fields.tagsDenuncia.value = arrayToLines(config.fallbackTags.DENUNCIA);
+  fields.tagsBanHack.value = arrayToLines(config.fallbackTags.BAN_HACK);
   fields.tagsBan.value = arrayToLines(config.fallbackTags.BAN);
 
   form.addEventListener("submit", async (event) => {
@@ -41,15 +41,15 @@
     const payload = {
       metaFallbackEnabled: fields.fallbackEnabled.checked,
       enabledMetaTypes: {
-        TICKET_ACEITO: fields.tipoTicketAceito.checked,
-        TICKET_NEGADO: fields.tipoTicketNegado.checked,
         REVISAO: fields.tipoRevisao.checked,
+        DENUNCIA: fields.tipoDenuncia.checked,
+        BAN_HACK: fields.tipoBanHack.checked,
         BAN: fields.tipoBan.checked
       },
       fallbackTags: {
-        TICKET_ACEITO: linesToArray(fields.tagsTicketAceito.value),
-        TICKET_NEGADO: linesToArray(fields.tagsTicketNegado.value),
         REVISAO: linesToArray(fields.tagsRevisao.value),
+        DENUNCIA: linesToArray(fields.tagsDenuncia.value),
+        BAN_HACK: linesToArray(fields.tagsBanHack.value),
         BAN: linesToArray(fields.tagsBan.value)
       }
     };
@@ -61,7 +61,7 @@
       });
       app.showToast("Sucesso", "Configurações salvas.", "success");
     } catch (error) {
-      app.showToast("Erro", error.message, "error");
+      app.showToast("Erro", error.message || "Falha ao salvar configurações.", "error");
     }
   });
 })();

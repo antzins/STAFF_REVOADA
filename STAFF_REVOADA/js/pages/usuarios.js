@@ -1,4 +1,4 @@
-﻿(() => {
+(() => {
   const input = document.getElementById("userIdInput");
   const button = document.getElementById("buscarUsuario");
   const resumo = document.getElementById("usuarioResumo");
@@ -50,20 +50,8 @@
           <div class="value">${data.totalAcoes}</div>
         </div>
         <div class="card">
-          <h3>Ticket Aceito</h3>
-          <div class="value">${counts.TICKET_ACEITO || 0}</div>
-        </div>
-        <div class="card">
-          <h3>Ticket Negado</h3>
-          <div class="value">${counts.TICKET_NEGADO || 0}</div>
-        </div>
-        <div class="card">
           <h3>Revisão</h3>
           <div class="value">${counts.REVISAO || 0}</div>
-        </div>
-        <div class="card">
-          <h3>Ban</h3>
-          <div class="value">${counts.BAN || 0}</div>
         </div>
         <div class="card">
           <h3>Denúncia</h3>
@@ -73,10 +61,15 @@
           <h3>Ban Hack</h3>
           <div class="value">${counts.BAN_HACK || 0}</div>
         </div>
+        <div class="card">
+          <h3>Ban</h3>
+          <div class="value">${counts.BAN || 0}</div>
+        </div>
       `;
     } catch (error) {
       resumo.innerHTML = "";
       renderHeader(null);
+      app.showToast("Falha", error.message || "Não foi possível carregar o usuário.", "error");
     }
   }
 

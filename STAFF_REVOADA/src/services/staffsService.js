@@ -1,10 +1,12 @@
-﻿const { getStorage } = require("../storage");
+const { getStorage } = require("../storage");
 
 const STAFFS_KEY = "staffs.json";
 
 async function getStaffsMap() {
   const storage = getStorage();
-  return storage.readJson(STAFFS_KEY, {});
+  const data = await storage.readJson(STAFFS_KEY, null);
+  if (data == null || typeof data !== "object") return {};
+  return data;
 }
 
 async function saveStaffsMap(data) {
@@ -39,7 +41,8 @@ async function removeStaff(discordId) {
 
 async function listStaffs() {
   const map = await getStaffsMap();
-  return Object.values(map);
+  if (Array.isArray(map)) return map;
+  return Object.values(map || {});
 }
 
 module.exports = {

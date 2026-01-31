@@ -78,6 +78,7 @@
 
       <section class="panel">
         <h2>Metas e Fallback</h2>
+        <p style="color:var(--muted);font-size:0.9rem">Metas oficiais (Revisão, Denúncia, Ban Hack) são definidas no .env. Aqui você ajusta fallback por tags e quais tipos exibir.</p>
         <form id="configForm">
           <div class="controls">
             <label class="toggle">
@@ -88,16 +89,16 @@
 
           <div class="controls">
             <label class="toggle">
-              <input type="checkbox" id="tipoTicketAceito" />
-              Ticket Aceito
-            </label>
-            <label class="toggle">
-              <input type="checkbox" id="tipoTicketNegado" />
-              Ticket Negado
-            </label>
-            <label class="toggle">
               <input type="checkbox" id="tipoRevisao" />
               Revisão
+            </label>
+            <label class="toggle">
+              <input type="checkbox" id="tipoDenuncia" />
+              Denúncia
+            </label>
+            <label class="toggle">
+              <input type="checkbox" id="tipoBanHack" />
+              Ban Hack
             </label>
             <label class="toggle">
               <input type="checkbox" id="tipoBan" />
@@ -107,16 +108,16 @@
 
           <div class="controls">
             <div class="control" style="flex:1;min-width:240px">
-              <label>Tags Ticket Aceito (1 por linha)</label>
-              <textarea id="tagsTicketAceito" rows="3"></textarea>
-            </div>
-            <div class="control" style="flex:1;min-width:240px">
-              <label>Tags Ticket Negado</label>
-              <textarea id="tagsTicketNegado" rows="3"></textarea>
-            </div>
-            <div class="control" style="flex:1;min-width:240px">
-              <label>Tags Revisão</label>
+              <label>Tags Revisão (1 por linha)</label>
               <textarea id="tagsRevisao" rows="3"></textarea>
+            </div>
+            <div class="control" style="flex:1;min-width:240px">
+              <label>Tags Denúncia</label>
+              <textarea id="tagsDenuncia" rows="3"></textarea>
+            </div>
+            <div class="control" style="flex:1;min-width:240px">
+              <label>Tags Ban Hack</label>
+              <textarea id="tagsBanHack" rows="3"></textarea>
             </div>
             <div class="control" style="flex:1;min-width:240px">
               <label>Tags Ban</label>

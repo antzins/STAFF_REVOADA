@@ -7,7 +7,7 @@ let cachedProvider = null;
 function getStorage() {
   if (cachedProvider) return cachedProvider;
   const env = getEnv();
-  if (env.STORAGE_MODE === "blob") {
+  if (env.STORAGE_MODE === "blob" || env.STORAGE_MODE === "vercel_blob") {
     cachedProvider = vercelBlob.createProvider(env);
     return cachedProvider;
   }

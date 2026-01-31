@@ -1,4 +1,4 @@
-﻿const { META_TYPES } = require("./metaTypes");
+const { META_TYPES } = require("./metaTypes");
 const { getStorage } = require("../storage");
 const { getEnv } = require("./env");
 
@@ -9,20 +9,20 @@ function defaultConfig() {
   return {
     metaFallbackEnabled: env.META_FALLBACK_ENABLED,
     fallbackTags: {
-      [META_TYPES.TICKET_ACEITO]: ["[TICKET ACEITO]"],
-      [META_TYPES.TICKET_NEGADO]: ["[TICKET NEGADO]"],
+      [META_TYPES.TICKET_ACEITO]: [],
+      [META_TYPES.TICKET_NEGADO]: [],
       [META_TYPES.BAN]: ["[BAN]"],
       [META_TYPES.REVISAO]: ["[REVISAO]", "[REVISÃO]"],
       [META_TYPES.DENUNCIA]: [],
       [META_TYPES.BAN_HACK]: []
     },
     enabledMetaTypes: {
-      [META_TYPES.TICKET_ACEITO]: true,
-      [META_TYPES.TICKET_NEGADO]: true,
+      [META_TYPES.TICKET_ACEITO]: false,
+      [META_TYPES.TICKET_NEGADO]: false,
       [META_TYPES.BAN]: true,
       [META_TYPES.REVISAO]: true,
-      [META_TYPES.DENUNCIA]: false,
-      [META_TYPES.BAN_HACK]: false
+      [META_TYPES.DENUNCIA]: true,
+      [META_TYPES.BAN_HACK]: true
     },
     updatedAt: Date.now(),
     version: 1
