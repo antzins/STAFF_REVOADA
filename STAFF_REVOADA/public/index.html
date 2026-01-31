@@ -1,0 +1,100 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>REVOADA RJ | Metas</title>
+  <script>
+    (function () {
+      try {
+        var last = localStorage.getItem("revoada_ui_last_user");
+        var key = last ? "revoada_ui_prefs:" + last : "revoada_ui_prefs:default";
+        var raw = localStorage.getItem(key) || localStorage.getItem("revoada_ui_prefs:default");
+        var prefs = raw ? JSON.parse(raw) : null;
+        var theme = prefs && prefs.theme ? prefs.theme : (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+        document.documentElement.setAttribute("data-theme", theme);
+        var fontScale = prefs && prefs.fontScale ? prefs.fontScale : 1;
+        document.documentElement.style.setProperty("--font-scale", fontScale);
+        var density = prefs && prefs.density ? prefs.density : "comfortable";
+        var densityPx = density === "compact" ? "8px" : "14px";
+        document.documentElement.style.setProperty("--density", densityPx);
+      } catch (e) {}
+    })();
+  </script>
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body data-page="dashboard">
+  <div class="sidebar-overlay"></div>
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="brand">
+        <span class="dot"></span>
+        REVOADA RJ
+      </div>
+      <nav class="nav">
+        <a href="index.html" data-page="dashboard">Dashboard</a>
+        <a href="ranking.html" data-page="ranking">Ranking</a>
+        <a href="usuarios.html" data-page="usuarios">Metas por Usuário</a>
+        <a href="staffs.html" data-page="staffs">Lista de Staffs</a>
+        <a href="historico.html" data-page="historico">Histórico</a>
+        <a href="config.html" data-page="config">Configurações</a>
+      </nav>
+      <div class="sidebar-footer">
+        <div class="badge">STAFF Metas</div>
+        <div>Discord OAuth2 + JSON Storage</div>
+      </div>
+    </aside>
+    <main class="main">
+      <div class="topbar">
+        <button class="mobile-toggle">☰ Menu</button>
+        <h1>Dashboard</h1>
+        <div class="user-chip"></div>
+      </div>
+
+      <section class="panel">
+        <div class="controls">
+          <div class="control">
+            <label for="mesSelectDashboard">Mês</label>
+            <select id="mesSelectDashboard"></select>
+          </div>
+        </div>
+      </section>
+
+      <section class="card-grid" id="cards">
+        <div class="card">
+          <h3>Total de Ações</h3>
+          <div class="value" id="totalAcoes">-</div>
+        </div>
+        <div class="card">
+          <h3>Tickets Aceitos</h3>
+          <div class="value" id="totalAceitos">-</div>
+        </div>
+        <div class="card">
+          <h3>Tickets Negados</h3>
+          <div class="value" id="totalNegados">-</div>
+        </div>
+        <div class="card">
+          <h3>Revisões</h3>
+          <div class="value" id="totalRevisoes">-</div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>Resumo Operacional</h2>
+        <div class="card-grid">
+          <div class="card">
+            <h3>Bans Registrados</h3>
+            <div class="value" id="totalBans">-</div>
+          </div>
+          <div class="card">
+            <h3>Usuários com Metas</h3>
+            <div class="value" id="totalUsuarios">-</div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+  <script src="js/app.js"></script>
+  <script src="js/pages/dashboard.js"></script>
+</body>
+</html>

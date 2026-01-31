@@ -1,0 +1,16 @@
+﻿{
+  "name": "revoada-metas",
+  "version": "1.0.0",
+  "private": true,
+  "type": "commonjs",
+  "scripts": {
+    "dev": "node src/bot/index.js",
+    "bot": "node src/bot/index.js",
+    "register:commands": "node src/bot/registerCommands.js"
+  },
+  "dependencies": {
+    "@vercel/blob": "^0.26.0",
+    "discord.js": "^14.15.2",
+    "jsonwebtoken": "^9.0.2"
+  }
+}

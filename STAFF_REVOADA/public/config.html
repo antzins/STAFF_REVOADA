@@ -1,0 +1,134 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>REVOADA RJ | Configurações</title>
+  <script>
+    (function () {
+      try {
+        var last = localStorage.getItem("revoada_ui_last_user");
+        var key = last ? "revoada_ui_prefs:" + last : "revoada_ui_prefs:default";
+        var raw = localStorage.getItem(key) || localStorage.getItem("revoada_ui_prefs:default");
+        var prefs = raw ? JSON.parse(raw) : null;
+        var theme = prefs && prefs.theme ? prefs.theme : (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+        document.documentElement.setAttribute("data-theme", theme);
+        var fontScale = prefs && prefs.fontScale ? prefs.fontScale : 1;
+        document.documentElement.style.setProperty("--font-scale", fontScale);
+        var density = prefs && prefs.density ? prefs.density : "comfortable";
+        var densityPx = density === "compact" ? "8px" : "14px";
+        document.documentElement.style.setProperty("--density", densityPx);
+      } catch (e) {}
+    })();
+  </script>
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body data-page="config">
+  <div class="sidebar-overlay"></div>
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="brand">
+        <span class="dot"></span>
+        REVOADA RJ
+      </div>
+      <nav class="nav">
+        <a href="index.html" data-page="dashboard">Dashboard</a>
+        <a href="ranking.html" data-page="ranking">Ranking</a>
+        <a href="usuarios.html" data-page="usuarios">Metas por Usuário</a>
+        <a href="staffs.html" data-page="staffs">Lista de Staffs</a>
+        <a href="historico.html" data-page="historico">Histórico</a>
+        <a href="config.html" data-page="config">Configurações</a>
+      </nav>
+      <div class="sidebar-footer">
+        <div class="badge">STAFF Metas</div>
+        <div>Preferências e regras</div>
+      </div>
+    </aside>
+    <main class="main">
+      <div class="topbar">
+        <button class="mobile-toggle">☰ Menu</button>
+        <h1>Configurações</h1>
+        <div class="user-chip"></div>
+      </div>
+
+      <section class="panel">
+        <h2>Interface</h2>
+        <div class="controls">
+          <div class="control">
+            <label for="themeSelect">Tema</label>
+            <select id="themeSelect">
+              <option value="light">Claro</option>
+              <option value="dark">Escuro</option>
+            </select>
+          </div>
+          <div class="control">
+            <label for="fontSlider">Tamanho da fonte</label>
+            <input type="range" id="fontSlider" min="0.9" max="1.2" step="0.05" />
+          </div>
+          <div class="control">
+            <label for="densitySelect">Densidade</label>
+            <select id="densitySelect">
+              <option value="comfortable">Conforto</option>
+              <option value="compact">Compacto</option>
+            </select>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>Metas e Fallback</h2>
+        <form id="configForm">
+          <div class="controls">
+            <label class="toggle">
+              <input type="checkbox" id="fallbackEnabled" />
+              Fallback por tags
+            </label>
+          </div>
+
+          <div class="controls">
+            <label class="toggle">
+              <input type="checkbox" id="tipoTicketAceito" />
+              Ticket Aceito
+            </label>
+            <label class="toggle">
+              <input type="checkbox" id="tipoTicketNegado" />
+              Ticket Negado
+            </label>
+            <label class="toggle">
+              <input type="checkbox" id="tipoRevisao" />
+              Revisão
+            </label>
+            <label class="toggle">
+              <input type="checkbox" id="tipoBan" />
+              Ban
+            </label>
+          </div>
+
+          <div class="controls">
+            <div class="control" style="flex:1;min-width:240px">
+              <label>Tags Ticket Aceito (1 por linha)</label>
+              <textarea id="tagsTicketAceito" rows="3"></textarea>
+            </div>
+            <div class="control" style="flex:1;min-width:240px">
+              <label>Tags Ticket Negado</label>
+              <textarea id="tagsTicketNegado" rows="3"></textarea>
+            </div>
+            <div class="control" style="flex:1;min-width:240px">
+              <label>Tags Revisão</label>
+              <textarea id="tagsRevisao" rows="3"></textarea>
+            </div>
+            <div class="control" style="flex:1;min-width:240px">
+              <label>Tags Ban</label>
+              <textarea id="tagsBan" rows="3"></textarea>
+            </div>
+          </div>
+
+          <button type="submit">Salvar configurações</button>
+        </form>
+      </section>
+    </main>
+  </div>
+  <script src="js/app.js"></script>
+  <script src="js/pages/config.js"></script>
+</body>
+</html>
