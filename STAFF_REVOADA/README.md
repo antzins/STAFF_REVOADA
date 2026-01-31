@@ -1,4 +1,4 @@
-﻿# REVOADA RJ - Metas STAFF
+# REVOADA RJ - Metas STAFF
 
 Projeto leve para gerenciamento de metas da staff do GTA RP REVOADA RJ, com painel web + bot do Discord. Persistência em JSON com backup automático e rotação mensal.
 
@@ -25,49 +25,62 @@ data/ (dev)
 - App OAuth2 Discord
 
 ## Variáveis de ambiente
-Obrigatórias:
+
+Obrigatórias (devem ser validadas):
 
 ```
-DISCORD_BOT_TOKEN=
-GUILD_ID=
+SESSION_SECRET=
 DISCORD_CLIENT_ID=
 DISCORD_CLIENT_SECRET=
 DISCORD_REDIRECT_URI=
-SESSION_SECRET=
-ADMIN_API_KEY=
-CH_TICKETS_ACEITOS_ID=
-CH_TICKETS_NEGADOS_ID=
-CH_REVISAO_ID=
-CH_BANS_ID=
-STAFF_ROLES_METAS=ROLE_ID_ESTAGIARIO,ROLE_ID_SUPORTE,ROLE_ID_MOD,ROLE_ID_ADM
-STAFF_ALLOWED_ROLES=ROLE_ID_1,ROLE_ID_2
-META_FALLBACK_ENABLED=true
+DISCORD_BOT_TOKEN=
+GUILD_ID=
+STAFF_ALLOWED_ROLES=
+STAFF_ROLES_METAS=
 INTERNAL_BOT_KEY=
+STORAGE_MODE=
+BLOB_READ_WRITE_TOKEN=
+```
+
+Opcionais (bot, sync, fallback):
+
+```
+META_FALLBACK_ENABLED=true
 STAFF_SYNC_URL=https://SEU_VERCEL_URL/api/internal/staffs/sync
 ```
 
-Regras novas de metas:
+Revisão (canais permitidos + keywords):
+
 ```
-CH_REVISAO_ALLOWED_CHANNELS=1447610409803583561,1447610616343822569
+CH_REVISAO_ALLOWED_CHANNELS=id1,id2
 REVISAO_KEYWORDS=✅ RELATÓRIO REVISÃO-ACEITO,🏷 TICKET-REVISÃO NEGADO
 META_REVISAO_REQUIRES_KEYWORD=true
 META_REVISAO_COUNT_BOTS=true
+```
 
-CH_DENUNCIA_ALLOWED_CHANNELS=1447610409803583561,1447610286516342794
+Denúncia:
+
+```
+CH_DENUNCIA_ALLOWED_CHANNELS=id1,id2
 DENUNCIA_KEYWORDS=🛠 TICKET-DENÚNCIA NEGADO,📛 RELATÓRIO ADV/BAN
 META_DENUNCIA_REQUIRES_KEYWORD=true
 META_DENUNCIA_COUNT_BOTS=true
+```
 
-CH_BANHACK_CHANNEL_ID=1447610776419565668
+Ban Hack:
+
+```
+CH_BANHACK_CHANNEL_ID=id
 BANHACK_KEYWORDS=👻 BAN HACK
 META_BANHACK_REQUIRES_KEYWORD=true
 META_BANHACK_COUNT_BOTS=true
 ```
 
 Produção (Vercel Blob):
+
 ```
-STORAGE_PROVIDER=vercel_blob
-VERCEL_BLOB_READ_WRITE_TOKEN=
+STORAGE_MODE=blob
+BLOB_READ_WRITE_TOKEN=
 ```
 
 ## Como rodar local
@@ -93,7 +106,7 @@ npm run bot
 ## Deploy no Vercel
 - Faça deploy do repositório.
 - Configure as ENV vars no painel do Vercel.
-- Configure `STORAGE_PROVIDER=vercel_blob` e `VERCEL_BLOB_READ_WRITE_TOKEN`.
+- Configure `STORAGE_MODE=blob` e `BLOB_READ_WRITE_TOKEN`.
 - O bot precisa rodar separado do Vercel (ex.: VPS/Render/Fly). O painel web e APIs ficam no Vercel.
 
 ## Fluxo de autenticação (performance)

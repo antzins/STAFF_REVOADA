@@ -1,12 +1,13 @@
-﻿const { META_TYPES } = require("./metaTypes");
+const { META_TYPES } = require("./metaTypes");
 const { getEnv } = require("./env");
 const { getConfig } = require("./configService");
 
 function detectByChannel(channelId, env) {
-  if (channelId === env.CH_TICKETS_ACEITOS_ID) return META_TYPES.TICKET_ACEITO;
-  if (channelId === env.CH_TICKETS_NEGADOS_ID) return META_TYPES.TICKET_NEGADO;
-  if (channelId === env.CH_REVISAO_ID) return META_TYPES.REVISAO;
-  if (channelId === env.CH_BANS_ID) return META_TYPES.BAN;
+  const revChannels = env.CH_REVISAO_ALLOWED_CHANNELS || [];
+  if (revChannels.includes(channelId)) return META_TYPES.REVISAO;
+  const denChannels = env.CH_DENUNCIA_ALLOWED_CHANNELS || [];
+  if (denChannels.includes(channelId)) return META_TYPES.DENUNCIA;
+  if (env.CH_BANHACK_CHANNEL_ID && channelId === env.CH_BANHACK_CHANNEL_ID) return META_TYPES.BAN_HACK;
   return null;
 }
 

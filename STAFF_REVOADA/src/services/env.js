@@ -1,15 +1,15 @@
-﻿const REQUIRED = [
-  "DISCORD_BOT_TOKEN",
-  "GUILD_ID",
+const REQUIRED = [
+  "SESSION_SECRET",
   "DISCORD_CLIENT_ID",
   "DISCORD_CLIENT_SECRET",
   "DISCORD_REDIRECT_URI",
-  "SESSION_SECRET",
-  "ADMIN_API_KEY",
-  "CH_TICKETS_ACEITOS_ID",
-  "CH_TICKETS_NEGADOS_ID",
-  "CH_REVISAO_ID",
-  "CH_BANS_ID"
+  "DISCORD_BOT_TOKEN",
+  "GUILD_ID",
+  "STAFF_ALLOWED_ROLES",
+  "STAFF_ROLES_METAS",
+  "INTERNAL_BOT_KEY",
+  "STORAGE_MODE",
+  "BLOB_READ_WRITE_TOKEN"
 ];
 
 function requireEnv(name) {
@@ -18,6 +18,13 @@ function requireEnv(name) {
     throw new Error(`Missing env: ${name}`);
   }
   return value;
+}
+
+function requirePresent(keys) {
+  const missing = keys.filter((key) => !(key in process.env));
+  if (missing.length) {
+    throw new Error(`Missing env vars: ${missing.join(", ")}`);
+  }
 }
 
 function parseCsv(value) {
@@ -31,23 +38,15 @@ function parseBoolean(value, fallback = false) {
 }
 
 function getEnv() {
-  const missing = REQUIRED.filter((key) => !process.env[key]);
-  if (missing.length) {
-    throw new Error(`Missing env vars: ${missing.join(", ")}`);
-  }
+  requirePresent(REQUIRED);
 
   return {
+    SESSION_SECRET: requireEnv("SESSION_SECRET"),
     DISCORD_BOT_TOKEN: requireEnv("DISCORD_BOT_TOKEN"),
     GUILD_ID: requireEnv("GUILD_ID"),
     DISCORD_CLIENT_ID: requireEnv("DISCORD_CLIENT_ID"),
     DISCORD_CLIENT_SECRET: requireEnv("DISCORD_CLIENT_SECRET"),
     DISCORD_REDIRECT_URI: requireEnv("DISCORD_REDIRECT_URI"),
-    SESSION_SECRET: requireEnv("SESSION_SECRET"),
-    ADMIN_API_KEY: requireEnv("ADMIN_API_KEY"),
-    CH_TICKETS_ACEITOS_ID: requireEnv("CH_TICKETS_ACEITOS_ID"),
-    CH_TICKETS_NEGADOS_ID: requireEnv("CH_TICKETS_NEGADOS_ID"),
-    CH_REVISAO_ID: requireEnv("CH_REVISAO_ID"),
-    CH_BANS_ID: requireEnv("CH_BANS_ID"),
     META_FALLBACK_ENABLED: parseBoolean(process.env.META_FALLBACK_ENABLED, false),
     STAFF_ROLES_METAS: parseCsv(process.env.STAFF_ROLES_METAS),
     STAFF_ALLOWED_ROLES: parseCsv(process.env.STAFF_ALLOWED_ROLES),
@@ -64,8 +63,8 @@ function getEnv() {
     META_BANHACK_REQUIRES_KEYWORD: parseBoolean(process.env.META_BANHACK_REQUIRES_KEYWORD, false),
     META_BANHACK_COUNT_BOTS: parseBoolean(process.env.META_BANHACK_COUNT_BOTS, false),
     STAFF_SYNC_URL: process.env.STAFF_SYNC_URL || "",
-    STORAGE_PROVIDER: process.env.STORAGE_PROVIDER || "local",
-    VERCEL_BLOB_READ_WRITE_TOKEN: process.env.VERCEL_BLOB_READ_WRITE_TOKEN || "",
+    STORAGE_MODE: process.env.STORAGE_MODE || "local",
+    BLOB_READ_WRITE_TOKEN: process.env.BLOB_READ_WRITE_TOKEN || "",
     INTERNAL_BOT_KEY: process.env.INTERNAL_BOT_KEY || "",
     NODE_ENV: process.env.NODE_ENV || "development"
   };

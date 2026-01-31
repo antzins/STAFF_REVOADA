@@ -1,4 +1,4 @@
-﻿const jwt = require("jsonwebtoken");
+const jwt = require("jsonwebtoken");
 const { getEnv, parseCsv } = require("./env");
 
 const COOKIE_NAME = "revoada_session";
@@ -71,9 +71,6 @@ function getAllowedRoles() {
 }
 
 function isAdmin(req, user) {
-  const env = getEnv();
-  const key = req.headers["x-admin-key"] || req.query?.adminKey;
-  if (key && key === env.ADMIN_API_KEY) return true;
   const allowedRoles = getAllowedRoles();
   return requireRole(user, allowedRoles);
 }
