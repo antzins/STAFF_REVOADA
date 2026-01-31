@@ -1,7 +1,16 @@
-﻿{
+{
   "functions": {
     "api/**/*.js": {
       "runtime": "nodejs22.x"
     }
-  }
+  },
+  "rewrites": [
+    { "source": "/", "destination": "/public/index.html" },
+    { "source": "/ranking", "destination": "/public/ranking.html" },
+    { "source": "/usuarios", "destination": "/public/usuarios.html" },
+    { "source": "/staffs", "destination": "/public/staffs.html" },
+    { "source": "/historico", "destination": "/public/historico.html" },
+    { "source": "/config", "destination": "/public/config.html" },
+    { "source": "/login", "destination": "/public/login.html" }
+  ]
 }
