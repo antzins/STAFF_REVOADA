@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>REVOADA RJ | Ranking</title>
+  <title>REVOADA RJ | Metas da Staff</title>
   <script>
     (function () {
       try {
@@ -24,7 +24,7 @@
   <link rel="icon" href="favicon.svg" type="image/svg+xml" />
   <link rel="stylesheet" href="css/styles.css" />
 </head>
-<body data-page="ranking">
+<body data-page="staff-metas">
   <div class="sidebar-overlay"></div>
   <div class="layout">
     <aside class="sidebar">
@@ -43,56 +43,22 @@
       </nav>
       <div class="sidebar-footer">
         <div class="badge">STAFF Metas</div>
-        <div>Ranking dinâmico</div>
+        <div>Gestão de equipe</div>
       </div>
     </aside>
     <main class="main">
       <div class="topbar">
         <button class="mobile-toggle">☰ Menu</button>
-        <h1>Ranking</h1>
+        <h1>Metas da Staff</h1>
         <div class="user-chip"></div>
       </div>
 
       <section class="panel">
-        <div class="controls">
-          <div class="control">
-            <label for="mesSelectRanking">Mês</label>
-            <select id="mesSelectRanking"></select>
-          </div>
-          <div class="control">
-            <label for="tipoSelect">Tipo</label>
-            <select id="tipoSelect">
-              <option value="">Total geral</option>
-              <option value="REVISAO">Revisão</option>
-              <option value="DENUNCIA">Denúncia</option>
-              <option value="BAN_HACK">Ban Hack</option>
-            </select>
-          </div>
-          <div class="control">
-            <label for="cargoSelectRanking">Cargo</label>
-            <select id="cargoSelectRanking">
-              <option value="">Todos os cargos</option>
-            </select>
-          </div>
-          <button id="refreshRanking">Atualizar</button>
-        </div>
-        <div class="table-wrap">
-          <table class="table" id="rankingTable">
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>Discord ID</th>
-                <th>Cargo</th>
-                <th>Valor</th>
-              </tr>
-            </thead>
-            <tbody></tbody>
-          </table>
-        </div>
+        <h2>Em breve</h2>
+        <p class="muted">Aqui vamos exibir a meta agregada da staff. Informe o formato desejado e conectamos os dados.</p>
       </section>
     </main>
   </div>
   <script src="js/app.js"></script>
-  <script src="js/pages/ranking.js"></script>
 </body>
 </html>

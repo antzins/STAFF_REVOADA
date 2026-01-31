@@ -201,13 +201,11 @@ async function handleRanking(req, res) {
   const mes = url.searchParams.get("mes");
   let cargoMatchValues = cargo ? [cargo] : null;
   if (cargo) {
-    const catalog = await getRoleCatalog();
-    const roles = catalog || [];
-    const staffs = await listStaffs().catch(() => []);
-    const derived = extractRolesFromStaffEntries(Array.isArray(staffs) ? staffs : []);
-    const allRoles = roles.length > 0 ? roles : derived;
-    const match = allRoles.find((r) => String(r.name || "").trim() === String(cargo).trim() || String(r.id) === String(cargo));
-    if (match) cargoMatchValues = [String(match.name || match.id), String(match.id)];
+    const env = getEnv();
+    const ids = env.STAFF_ROLES_METAS || [];
+    const labels = env.STAFF_ROLES_LABELS || [];
+    const idx = labels.findIndex((l) => String(l || "").trim() === String(cargo).trim());
+    if (idx >= 0 && ids[idx]) cargoMatchValues.push(String(ids[idx]));
   }
   const { metas, source } = await getMetasByMonth(mes);
   const ranking = await getRanking({ tipo, cargo, cargoMatchValues, metasOverride: metas });
@@ -225,43 +223,59 @@ async function handleResumo(req, res) {
 
 async function handleStaffs(req, res) {
   requireAuth(req);
-  try {
-    const staffs = await listStaffs();
-    sendJson(res, 200, Array.isArray(staffs) ? staffs : []);
-  } catch {
-    sendJson(res, 200, []);
-  }
+  const staffs = await listStaffs();
+  sendJson(res, 200, staffs);
 }
 
 async function handleStaffRoles(req, res) {
   requireAuth(req);
   const env = getEnv();
-  const metaIds = env.STAFF_ROLES_METAS || [];
-  const catalog = await getRoleCatalog();
-  if (catalog && catalog.length > 0) {
-    const byId = new Map(catalog.map((r) => [String(r.id), { id: r.id, name: r.name || r.id }]));
-    const roles = metaIds
-      .map((id) => byId.get(String(id)))
-      .filter(Boolean);
-    if (roles.length > 0) {
-      sendJson(res, 200, { roles });
-      return;
+  const ids = env.STAFF_ROLES_METAS || [];
+  const labels = env.STAFF_ROLES_LABELS || [];
+  const labelMap = {};
+  ids.forEach((id, i) => {
+    const label = (labels[i] || "").trim();
+    if (id) labelMap[String(id)] = label;
+  });
+
+  let catalog = await getRoleCatalog();
+  if (!catalog || catalog.length === 0) {
+    const staffs = await listStaffs();
+    const derived = extractRolesFromStaffEntries(staffs);
+    if (derived.length > 0) {
+      await saveRoleCatalog(derived);
+      catalog = derived;
     }
-    sendJson(res, 200, { roles: catalog });
+  }
+
+  const catalogMap = new Map();
+  (catalog || []).forEach((role) => {
+    if (role && role.id) {
+      catalogMap.set(String(role.id), String(role.name || role.id));
+    }
+  });
+
+  if (ids.length > 0) {
+    const roles = ids
+      .map((id) => {
+        const key = String(id);
+        const label = labelMap[key];
+        const catalogName = catalogMap.get(key);
+        return { id, name: label || catalogName || id };
+      })
+      .filter((role) => role.id);
+    sendJson(res, 200, { roles });
     return;
   }
-  const staffs = await listStaffs().catch(() => []);
-  const derived = extractRolesFromStaffEntries(Array.isArray(staffs) ? staffs : []);
-  if (derived.length > 0) {
-    await saveRoleCatalog(derived);
-    const byId = new Map(derived.map((r) => [String(r.id), { id: r.id, name: r.name || r.id }]));
-    const roles = metaIds
-      .map((id) => byId.get(String(id)))
-      .filter(Boolean);
-    sendJson(res, 200, { roles: roles.length > 0 ? roles : derived });
+
+  if (catalog && catalog.length > 0) {
+    const roles = catalog.map((r) => ({ id: r.id, name: r.name || r.id }));
+    sendJson(res, 200, { roles });
     return;
   }
-  sendJson(res, 200, { roles: metaIds.map((id) => ({ id, name: id })) });
+
+  const roles = ids.map((id, i) => ({ id, name: labels[i] || id }));
+  sendJson(res, 200, { roles });
 }
 
 async function handleAdminRotacionar(req, res) {
@@ -301,21 +315,6 @@ async function handleInternalStaffsSync(req, res) {
   }
   await mergeRoleCatalog(roleCatalogItems);
   sendJson(res, 200, { ok: true, count: results.length });
-}
-
-async function handleInternalStaffsRemove(req, res) {
-  requireInternal(req);
-  if (req.method !== "POST") {
-    sendJson(res, 405, { error: true, message: "Método não suportado." });
-    return;
-  }
-  const body = await readJsonBody(req);
-  if (!body || !body.discordId) {
-    sendJson(res, 400, { error: true, message: "Payload inválido. Use { discordId }." });
-    return;
-  }
-  await removeStaff(body.discordId);
-  sendJson(res, 200, { ok: true, action: "remove" });
 }
 
 async function handleInternalStaffsUpsert(req, res) {
@@ -378,7 +377,6 @@ const routes = {
     staffs: {
       sync: { POST: handleInternalStaffsSync },
       upsert: { POST: handleInternalStaffsUpsert },
-      remove: { POST: handleInternalStaffsRemove },
       "role-catalog": { POST: handleInternalStaffsRoleCatalog }
     }
   }

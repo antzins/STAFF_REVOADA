@@ -30,6 +30,10 @@
       <div class="badge">Acesso Staff</div>
       <h1>Metas REVOADA RJ</h1>
       <p>Faça login com o Discord para gerenciar as metas da equipe. O acesso é permitido apenas para cargos autorizados.</p>
+      <div id="loginAlert" class="alert error" style="display:none">
+        <div class="alert-title">Acesso negado</div>
+        <div id="loginAlertMessage"></div>
+      </div>
       <button id="loginDiscord">Entrar com Discord</button>
       <button class="secondary" id="mockLogin">Simular login (teste)</button>
       <div style="font-size:0.85rem;color:var(--muted)">
@@ -64,7 +68,19 @@
         }
       }
 
-      function showError(message) {
+      function showAlert(message) {
+        var alertBox = document.getElementById("loginAlert");
+        var alertMessage = document.getElementById("loginAlertMessage");
+        if (!alertBox || !alertMessage) return;
+        alertMessage.textContent = message;
+        alertBox.style.display = "grid";
+      }
+
+      function showError(message, useAlert) {
+        if (useAlert) {
+          showAlert(message);
+          return;
+        }
         if (window.app && app.showToast) {
           app.showToast("Acesso negado", message, "error");
         }
@@ -77,7 +93,7 @@
           oauth: "Falha ao validar no Discord. Tente novamente.",
           forbidden: "Você não possui permissão para acessar."
         };
-        showError(messages[reason] || "Não foi possível autenticar.");
+        showError(messages[reason] || "Nao foi possivel autenticar.", reason === "forbidden");
         cleanupParams();
         return;
       }

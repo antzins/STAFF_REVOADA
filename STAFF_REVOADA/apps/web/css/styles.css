@@ -407,3 +407,23 @@ button:hover {
   font-weight: 600;
   font-size: 0.8rem;
 }
+
+.alert {
+  border-radius: 14px;
+  padding: 12px 14px;
+  border: 1px solid var(--surface-2);
+  background: var(--surface-2);
+  display: grid;
+  gap: 6px;
+  font-size: 0.95rem;
+}
+
+.alert-title {
+  font-weight: 600;
+}
+
+.alert.error {
+  border-color: rgba(216, 64, 64, 0.35);
+  background: rgba(216, 64, 64, 0.08);
+  color: var(--text);
+}

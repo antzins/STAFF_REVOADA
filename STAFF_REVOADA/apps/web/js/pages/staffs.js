@@ -9,6 +9,10 @@
   let data = [];
   let rolesFromEnv = [];
 
+  function getEnvRoleIds() {
+    return rolesFromEnv.map((r) => String(r.id || "")).filter(Boolean);
+  }
+
   function getRoleNameToIdMap() {
     const map = new Map();
     rolesFromEnv.forEach((r) => {
@@ -69,6 +73,16 @@
     return resolved.includes(r);
   }
 
+  function isStaffInEnv(item) {
+    const envIds = getEnvRoleIds();
+    if (envIds.length === 0) return true;
+    const itemRoleIds = new Set([
+      ...(item.roles || []).map((x) => String(x)),
+      ...(item.roleNames || []).map((x) => String(x.id || ""))
+    ]);
+    return envIds.some((id) => itemRoleIds.has(id));
+  }
+
   function matchesFilters(item) {
     const nome = filterNome.value.trim().toLowerCase();
     const servidor = filterServidor.value.trim();
@@ -92,7 +106,7 @@
 
   function renderTable() {
     tableBody.innerHTML = "";
-    const filtered = data.filter(matchesFilters);
+    const filtered = data.filter(isStaffInEnv).filter(matchesFilters);
 
     filtered.forEach((item) => {
       const roleNames = getRoleNamesForDisplay(item);
@@ -128,6 +142,7 @@
     const container = document.getElementById("relatorioPorCargoContent");
     const section = document.getElementById("relatorioPorCargo");
     if (!container) return;
+    const staffEligible = data.filter(isStaffInEnv);
     const canonicalRoles = rolesFromEnv
       .map((r) => ({ id: String(r.id), name: (r.name || r.label || r.id).trim() }))
       .filter((r) => r.name);
@@ -138,7 +153,7 @@
     section.style.display = "block";
     container.innerHTML = canonicalRoles
       .map((role) => {
-        const users = data
+        const users = staffEligible
           .filter((item) => {
             const itemIds = new Set([
               ...(item.roles || []).map(String),

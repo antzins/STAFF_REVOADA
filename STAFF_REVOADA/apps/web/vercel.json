@@ -4,6 +4,7 @@
     { "source": "/", "destination": "/index.html" },
     { "source": "/ranking", "destination": "/ranking.html" },
     { "source": "/usuarios", "destination": "/usuarios.html" },
+    { "source": "/staff-metas", "destination": "/staff-metas.html" },
     { "source": "/staffs", "destination": "/staffs.html" },
     { "source": "/historico", "destination": "/historico.html" },
     { "source": "/config", "destination": "/config.html" },
