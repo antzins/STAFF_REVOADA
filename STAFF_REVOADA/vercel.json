@@ -4,13 +4,16 @@
       "runtime": "nodejs22.x"
     }
   },
+  "outputDirectory": "public",
   "rewrites": [
-    { "source": "/", "destination": "/public/index.html" },
-    { "source": "/ranking", "destination": "/public/ranking.html" },
-    { "source": "/usuarios", "destination": "/public/usuarios.html" },
-    { "source": "/staffs", "destination": "/public/staffs.html" },
-    { "source": "/historico", "destination": "/public/historico.html" },
-    { "source": "/config", "destination": "/public/config.html" },
-    { "source": "/login", "destination": "/public/login.html" }
+    { "source": "/", "destination": "/index.html" },
+    { "source": "/ranking", "destination": "/ranking.html" },
+    { "source": "/usuarios", "destination": "/usuarios.html" },
+    { "source": "/staffs", "destination": "/staffs.html" },
+    { "source": "/historico", "destination": "/historico.html" },
+    { "source": "/config", "destination": "/config.html" },
+    { "source": "/login", "destination": "/login.html" },
+    { "source": "/favicon.ico", "destination": "/favicon.svg" },
+    { "source": "/favicon.png", "destination": "/favicon.svg" }
   ]
 }
