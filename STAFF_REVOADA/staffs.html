@@ -75,6 +75,9 @@
             </div>
           </div>
         </div>
+        <p id="staffsEmptyMessage" class="muted" style="display:none;margin-top:1rem;font-size:0.9rem">
+          A lista é atualizada pelo bot (eventos <code>guildMemberUpdate</code>). Configure <strong>STAFF_ROLES_METAS</strong> no .env do bot e garanta que ele chame <code>POST /api/internal/staffs/sync</code>. Os cargos do filtro vêm do .env (STAFF_ROLES_METAS e STAFF_ROLES_LABELS).
+        </p>
         <div class="table-wrap">
           <table class="table" id="staffsTable">
             <thead>

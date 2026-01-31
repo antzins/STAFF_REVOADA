@@ -205,6 +205,15 @@ async function handleStaffs(req, res) {
   sendJson(res, 200, staffs);
 }
 
+async function handleStaffRoles(req, res) {
+  requireAuth(req);
+  const env = getEnv();
+  const ids = env.STAFF_ROLES_METAS || [];
+  const labels = env.STAFF_ROLES_LABELS || [];
+  const roles = ids.map((id, i) => ({ id, label: labels[i] || id }));
+  sendJson(res, 200, { roles });
+}
+
 async function handleAdminRotacionar(req, res) {
   let user = null;
   try {
@@ -269,6 +278,7 @@ const routes = {
   ranking: { GET: handleRanking },
   resumo: { GET: handleResumo },
   staffs: { GET: handleStaffs },
+  "staff-roles": { GET: handleStaffRoles },
   historico: { GET: handleHistorico },
   usuario: { GET: handleUsuario },
   config: { GET: handleConfig, POST: handleConfig },

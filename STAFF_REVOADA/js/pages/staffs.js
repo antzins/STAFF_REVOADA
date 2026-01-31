@@ -1,16 +1,20 @@
-﻿(() => {
+(() => {
   const tableBody = document.querySelector("#staffsTable tbody");
   const filterNome = document.getElementById("filterNome");
   const filterServidor = document.getElementById("filterServidor");
   const filterDiscord = document.getElementById("filterDiscord");
   const filterCargo = document.getElementById("filterCargo");
+  const emptyMessage = document.getElementById("staffsEmptyMessage");
 
   let data = [];
+  let rolesFromEnv = [];
 
   function buildCargoOptions() {
     filterCargo.innerHTML = '<option value="">Todos os Cargos</option>';
-    const cargos = Array.from(new Set(data.map((item) => item.cargoLabel || item.cargo))).filter(Boolean).sort();
-    cargos.forEach((cargo) => {
+    const fromData = Array.from(new Set(data.map((item) => item.cargoLabel || item.cargo))).filter(Boolean);
+    const fromEnv = rolesFromEnv.map((r) => (r.label || r.id).trim()).filter(Boolean);
+    const allCargos = Array.from(new Set([...fromEnv, ...fromData])).sort();
+    allCargos.forEach((cargo) => {
       const option = document.createElement("option");
       option.value = cargo;
       option.textContent = cargo;
@@ -27,7 +31,7 @@
     const nomeValue = (item.nome || "").toLowerCase();
     const servidorValue = String(item.idServidor || "");
     const discordValue = String(item.discordId || "");
-    const cargoValue = item.cargoLabel || "";
+    const cargoValue = item.cargoLabel || item.cargo || "";
 
     if (nome && !nomeValue.includes(nome)) return false;
     if (servidor && !servidorValue.includes(servidor)) return false;
@@ -61,9 +65,25 @@
   }
 
   async function loadStaffs() {
-    data = await app.apiFetch("/api/staffs");
-    buildCargoOptions();
-    renderTable();
+    try {
+      const [staffsRes, rolesRes] = await Promise.all([
+        app.apiFetch("/api/staffs"),
+        app.apiFetch("/api/staff-roles").catch(() => ({ roles: [] }))
+      ]);
+      data = Array.isArray(staffsRes) ? staffsRes : [];
+      rolesFromEnv = (rolesRes && rolesRes.roles) ? rolesRes.roles : [];
+      buildCargoOptions();
+      renderTable();
+      if (emptyMessage) {
+        emptyMessage.style.display = data.length === 0 ? "block" : "none";
+      }
+    } catch (e) {
+      data = [];
+      rolesFromEnv = [];
+      buildCargoOptions();
+      renderTable();
+      if (emptyMessage) emptyMessage.style.display = "block";
+    }
   }
 
   [filterNome, filterServidor, filterDiscord, filterCargo].forEach((input) => {

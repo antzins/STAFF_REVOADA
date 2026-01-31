@@ -64,6 +64,7 @@ function getEnv() {
     DISCORD_REDIRECT_URI: sanitizeOAuthEnv("DISCORD_REDIRECT_URI"),
     META_FALLBACK_ENABLED: parseBoolean(process.env.META_FALLBACK_ENABLED, false),
     STAFF_ROLES_METAS: parseCsv(process.env.STAFF_ROLES_METAS),
+    STAFF_ROLES_LABELS: parseCsv(process.env.STAFF_ROLES_LABELS || ""),
     STAFF_ALLOWED_ROLES: parseCsv(process.env.STAFF_ALLOWED_ROLES),
     CH_REVISAO_ALLOWED_CHANNELS: parseCsv(process.env.CH_REVISAO_ALLOWED_CHANNELS),
     REVISAO_KEYWORDS: parseCsv(process.env.REVISAO_KEYWORDS),

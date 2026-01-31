@@ -7,7 +7,7 @@
     meses.forEach((mes) => {
       const option = document.createElement("option");
       option.value = mes;
-      option.textContent = mes === "atual" ? "Mês atual" : mes;
+      option.textContent = mes === "atual" ? "Janeiro/2026" : mes;
       mesSelect.appendChild(option);
     });
     const stored = app.getSelectedMonth();
