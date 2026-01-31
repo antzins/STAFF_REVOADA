@@ -23,7 +23,10 @@ function requireEnv(name) {
 function requirePresent(keys) {
   const missing = keys.filter((key) => !(key in process.env));
   if (missing.length) {
-    throw new Error(`Missing env vars: ${missing.join(", ")}`);
+    throw new Error(
+      `Variáveis de ambiente obrigatórias não definidas: ${missing.join(", ")}. ` +
+      "Configure-as no painel do Vercel (Settings → Environment Variables) ou no arquivo .env."
+    );
   }
 }
 
