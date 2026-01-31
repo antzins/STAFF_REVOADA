@@ -8,7 +8,7 @@ const { getEnv } = require("../src/services/env");
 const { getStorage } = require("../src/storage");
 const { getUsuario, getRanking, getResumo } = require("../src/services/dataService");
 const { getMetasByMonth, listAvailableMonths } = require("../src/services/metasByMonth");
-const { listStaffs, upsertStaff, removeStaff } = require("../src/services/staffsService");
+const { listStaffs, upsertStaff, removeStaff, getRoleCatalog, saveRoleCatalog } = require("../src/services/staffsService");
 const { rotateMonth } = require("../src/services/backupService");
 
 function getPathSegments(req) {
@@ -207,10 +207,15 @@ async function handleStaffs(req, res) {
 
 async function handleStaffRoles(req, res) {
   requireAuth(req);
+  const catalog = await getRoleCatalog();
+  if (catalog && catalog.length > 0) {
+    sendJson(res, 200, { roles: catalog });
+    return;
+  }
   const env = getEnv();
   const ids = env.STAFF_ROLES_METAS || [];
   const labels = env.STAFF_ROLES_LABELS || [];
-  const roles = ids.map((id, i) => ({ id, label: labels[i] || id }));
+  const roles = ids.map((id, i) => ({ id, name: labels[i] || id }));
   sendJson(res, 200, { roles });
 }
 
@@ -271,6 +276,21 @@ async function handleInternalStaffsUpsert(req, res) {
   sendJson(res, 200, { ok: true, action: "upsert", staff: saved });
 }
 
+async function handleInternalStaffsRoleCatalog(req, res) {
+  requireInternal(req);
+  if (req.method !== "POST") {
+    sendJson(res, 405, { error: true, message: "Método não suportado." });
+    return;
+  }
+  const body = await readJsonBody(req);
+  if (!body || !Array.isArray(body.roles)) {
+    sendJson(res, 400, { error: true, message: "Payload inválido. Use { roles: [{ id, name }, ...] }." });
+    return;
+  }
+  await saveRoleCatalog(body.roles);
+  sendJson(res, 200, { ok: true, count: body.roles.length });
+}
+
 const routes = {
   me: { GET: handleMe },
   "meses-disponiveis": { GET: handleMesesDisponiveis },
@@ -293,7 +313,8 @@ const routes = {
   internal: {
     staffs: {
       sync: { POST: handleInternalStaffsSync },
-      upsert: { POST: handleInternalStaffsUpsert }
+      upsert: { POST: handleInternalStaffsUpsert },
+      "role-catalog": { POST: handleInternalStaffsRoleCatalog }
     }
   }
 };

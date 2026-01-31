@@ -1,6 +1,7 @@
 const { getStorage } = require("../storage");
 
 const STAFFS_KEY = "staffs.json";
+const ROLE_CATALOG_KEY = "staff-role-catalog.json";
 
 async function getStaffsMap() {
   const storage = getStorage();
@@ -46,11 +47,27 @@ async function listStaffs() {
   return Object.values(map || {});
 }
 
+async function getRoleCatalog() {
+  const storage = getStorage();
+  const data = await storage.readJson(ROLE_CATALOG_KEY, null);
+  if (!data || !Array.isArray(data.roles)) return null;
+  return data.roles;
+}
+
+async function saveRoleCatalog(roles) {
+  if (!Array.isArray(roles)) return;
+  const storage = getStorage();
+  await storage.writeJson(ROLE_CATALOG_KEY, { roles, updatedAt: Date.now() });
+}
+
 module.exports = {
   STAFFS_KEY,
+  ROLE_CATALOG_KEY,
   getStaffsMap,
   saveStaffsMap,
   upsertStaff,
   removeStaff,
-  listStaffs
+  listStaffs,
+  getRoleCatalog,
+  saveRoleCatalog
 };

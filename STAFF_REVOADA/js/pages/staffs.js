@@ -23,7 +23,7 @@
   function buildCargoOptions() {
     filterCargo.innerHTML = '<option value="">Todos os Cargos</option>';
     const fromData = getAllRoleNames();
-    const fromEnv = rolesFromEnv.map((r) => (r.label || r.id).trim()).filter(Boolean);
+    const fromEnv = rolesFromEnv.map((r) => (r.name || r.label || r.id).trim()).filter(Boolean);
     const allCargos = Array.from(new Set([...fromData, ...fromEnv])).sort();
     allCargos.forEach((cargo) => {
       const option = document.createElement("option");

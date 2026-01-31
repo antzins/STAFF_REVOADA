@@ -114,6 +114,38 @@ async function syncStaffToApi(payload) {
   }
 }
 
+function getRoleCatalogUrl() {
+  if (!env.STAFF_SYNC_URL) return null;
+  return String(env.STAFF_SYNC_URL).replace(/\/sync\/?$/, "") + "/role-catalog";
+}
+
+async function pushRoleCatalogToApi(guild) {
+  const url = getRoleCatalogUrl();
+  if (!url || !env.INTERNAL_BOT_KEY) return;
+  const roles = (env.STAFF_ROLES_METAS || [])
+    .map((roleId) => {
+      const role = guild.roles.cache.get(roleId);
+      return { id: roleId, name: role ? role.name : roleId };
+    })
+    .filter((r) => r.id);
+  if (roles.length === 0) return;
+  try {
+    const res = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Internal-Key": env.INTERNAL_BOT_KEY
+      },
+      body: JSON.stringify({ roles })
+    });
+    if (res.ok) {
+      console.log("Catálogo de cargos enviado:", roles.map((r) => r.name).join(", "));
+    }
+  } catch (error) {
+    console.error("Falha ao enviar catálogo de cargos:", error);
+  }
+}
+
 function getStaffRoleNames(member) {
   return env.STAFF_ROLES_METAS
     .filter((roleId) => member.roles.cache.has(roleId))
@@ -275,6 +307,11 @@ client.on("interactionCreate", async (interaction) => {
 client.once("ready", async () => {
   console.log(`Bot online: ${client.user.tag}`);
   await ensureRotationIfNeeded();
+
+  const guild = await client.guilds.fetch(env.GUILD_ID).catch(() => null);
+  if (guild) {
+    await pushRoleCatalogToApi(guild);
+  }
 
   setInterval(async () => {
     try {
