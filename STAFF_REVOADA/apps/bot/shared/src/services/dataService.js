@@ -1,4 +1,4 @@
-﻿const { getMetas } = require("./metaService");
+const { getMetas } = require("./metaService");
 const { META_TYPES } = require("./metaTypes");
 
 function buildResumo(metas) {
@@ -24,7 +24,7 @@ function buildResumo(metas) {
   return resumo;
 }
 
-function buildRanking(metas, tipo, cargo) {
+function buildRanking(metas, tipo, cargo, cargoMatchValues) {
   const entries = Object.entries(metas).map(([userId, userData]) => {
     const counts = {};
     for (const action of userData.acoes || []) {
@@ -39,9 +39,14 @@ function buildRanking(metas, tipo, cargo) {
     };
   });
 
+  const matchSet = cargoMatchValues && cargoMatchValues.length > 0
+    ? new Set(cargoMatchValues.map(String))
+    : null;
+
   const filtered = entries.filter((entry) => {
-    if (cargo && entry.cargoStaff !== cargo) return false;
-    return true;
+    if (!cargo) return true;
+    if (matchSet) return matchSet.has(String(entry.cargoStaff || ""));
+    return String(entry.cargoStaff || "") === String(cargo);
   });
 
   const sorted = filtered.sort((a, b) => {
@@ -58,9 +63,9 @@ async function getResumo(metasOverride) {
   return buildResumo(metas);
 }
 
-async function getRanking({ tipo, cargo, metasOverride }) {
+async function getRanking({ tipo, cargo, cargoMatchValues, metasOverride }) {
   const metas = metasOverride || await getMetas();
-  return buildRanking(metas, tipo, cargo);
+  return buildRanking(metas, tipo, cargo, cargoMatchValues);
 }
 
 async function getUsuario(id, metasOverride) {

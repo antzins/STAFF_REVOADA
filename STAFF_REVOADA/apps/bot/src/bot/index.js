@@ -19,6 +19,13 @@ const client = new Client({
   partials: [Partials.Channel]
 });
 
+function getRoleNameWithFallback(member, staffRoleId) {
+  const role = member.roles.cache.get(staffRoleId);
+  const labels = env.STAFF_ROLES_LABELS || [];
+  const idx = env.STAFF_ROLES_METAS.findIndex((id) => String(id) === String(staffRoleId));
+  return (role && role.name) || ((idx >= 0 && labels[idx]) ? String(labels[idx]).trim() : "") || staffRoleId;
+}
+
 async function resolveTargets(message) {
   const targets = [];
   const mentionedUsers = [...message.mentions.users.values()];
@@ -29,7 +36,7 @@ async function resolveTargets(message) {
       const member = await message.guild.members.fetch({ user: user.id, force: false });
       const staffRoleId = env.STAFF_ROLES_METAS.find((roleId) => member.roles.cache.has(roleId));
       if (!staffRoleId) continue;
-      const roleName = member.roles.cache.get(staffRoleId)?.name || "";
+      const roleName = getRoleNameWithFallback(member, staffRoleId);
       targets.push({ id: user.id, roleName, observacao: `menção em ${message.channel.name}` });
     } catch (error) {
       continue;
@@ -44,7 +51,7 @@ async function resolveAuthorTarget(message) {
     const member = await message.guild.members.fetch({ user: message.author.id, force: false });
     const staffRoleId = env.STAFF_ROLES_METAS.find((roleId) => member.roles.cache.has(roleId));
     if (!staffRoleId) return null;
-    const roleName = member.roles.cache.get(staffRoleId)?.name || "";
+    const roleName = getRoleNameWithFallback(member, staffRoleId);
     return { id: message.author.id, roleName, observacao: `mensagem em ${message.channel.name}` };
   } catch (error) {
     return null;
@@ -142,10 +149,12 @@ function getRoleCatalogUrl() {
 async function pushRoleCatalogToApi(guild) {
   const url = getRoleCatalogUrl();
   if (!url || !env.INTERNAL_BOT_KEY) return;
+  const labels = env.STAFF_ROLES_LABELS || [];
   const roles = (env.STAFF_ROLES_METAS || [])
-    .map((roleId) => {
+    .map((roleId, i) => {
       const role = guild.roles.cache.get(roleId);
-      return { id: roleId, name: role ? role.name : roleId };
+      const name = role ? role.name : ((labels[i] || "").trim() || roleId);
+      return { id: roleId, name };
     })
     .filter((r) => r.id);
   if (roles.length === 0) return;
@@ -167,12 +176,15 @@ async function pushRoleCatalogToApi(guild) {
 }
 
 function getStaffRoleNames(member) {
+  const labels = env.STAFF_ROLES_LABELS || [];
   return env.STAFF_ROLES_METAS
-    .filter((roleId) => member.roles.cache.has(roleId))
-    .map((roleId) => ({
-      id: roleId,
-      name: member.roles.cache.get(roleId)?.name || roleId
-    }));
+    .map((roleId, i) => (member.roles.cache.has(roleId) ? { roleId, idx: i } : null))
+    .filter(Boolean)
+    .map(({ roleId, idx }) => {
+      const role = member.roles.cache.get(roleId);
+      const name = role ? role.name : ((labels[idx] || "").trim() || roleId);
+      return { id: roleId, name };
+    });
 }
 
 async function syncAllStaffMembers(guild) {

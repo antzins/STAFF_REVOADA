@@ -199,8 +199,16 @@ async function handleRanking(req, res) {
   const tipo = url.searchParams.get("tipo");
   const cargo = url.searchParams.get("cargo");
   const mes = url.searchParams.get("mes");
+  let cargoMatchValues = cargo ? [cargo] : null;
+  if (cargo) {
+    const env = getEnv();
+    const ids = env.STAFF_ROLES_METAS || [];
+    const labels = env.STAFF_ROLES_LABELS || [];
+    const idx = labels.findIndex((l) => String(l || "").trim() === String(cargo).trim());
+    if (idx >= 0 && ids[idx]) cargoMatchValues.push(String(ids[idx]));
+  }
   const { metas, source } = await getMetasByMonth(mes);
-  const ranking = await getRanking({ tipo, cargo, metasOverride: metas });
+  const ranking = await getRanking({ tipo, cargo, cargoMatchValues, metasOverride: metas });
   sendJson(res, 200, { mes: source, ranking });
 }
 
@@ -221,21 +229,32 @@ async function handleStaffs(req, res) {
 
 async function handleStaffRoles(req, res) {
   requireAuth(req);
+  const env = getEnv();
+  const ids = env.STAFF_ROLES_METAS || [];
+  const labels = env.STAFF_ROLES_LABELS || [];
+  if (ids.length > 0 && labels.length >= ids.length) {
+    const rolesFromEnv = ids.map((id, i) => ({ id, name: (labels[i] || "").trim() || id }));
+    sendJson(res, 200, { roles: rolesFromEnv });
+    return;
+  }
   const catalog = await getRoleCatalog();
   if (catalog && catalog.length > 0) {
-    sendJson(res, 200, { roles: catalog });
+    const labelMap = {};
+    ids.forEach((id, i) => { labelMap[id] = (labels[i] || "").trim() || id; });
+    const roles = catalog.map((r) => ({ id: r.id, name: labelMap[r.id] || r.name || r.id }));
+    sendJson(res, 200, { roles });
     return;
   }
   const staffs = await listStaffs();
   const derived = extractRolesFromStaffEntries(staffs);
   if (derived.length > 0) {
     await saveRoleCatalog(derived);
-    sendJson(res, 200, { roles: derived });
+    const labelMap = {};
+    ids.forEach((id, i) => { labelMap[id] = (labels[i] || "").trim() || id; });
+    const roles = derived.map((r) => ({ id: r.id, name: labelMap[r.id] || r.name || r.id }));
+    sendJson(res, 200, { roles });
     return;
   }
-  const env = getEnv();
-  const ids = env.STAFF_ROLES_METAS || [];
-  const labels = env.STAFF_ROLES_LABELS || [];
   const roles = ids.map((id, i) => ({ id, name: labels[i] || id }));
   sendJson(res, 200, { roles });
 }

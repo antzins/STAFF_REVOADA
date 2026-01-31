@@ -9,22 +9,24 @@
   let data = [];
   let rolesFromEnv = [];
 
-  function getAllRoleNames() {
-    const names = new Set();
-    data.forEach((item) => {
-      if (item.cargoLabel && item.cargoLabel.trim()) names.add(item.cargoLabel.trim());
-      (item.roleNames || []).forEach((r) => {
-        if (r.name && String(r.name).trim()) names.add(String(r.name).trim());
-      });
+  function getRoleNameToIdMap() {
+    const map = new Map();
+    rolesFromEnv.forEach((r) => {
+      const name = (r.name || r.label || "").trim();
+      if (name) map.set(name, String(r.id || ""));
     });
-    return Array.from(names).sort();
+    return map;
   }
 
   function buildCargoOptions() {
     filterCargo.innerHTML = '<option value="">Todos os Cargos</option>';
-    const fromData = getAllRoleNames();
-    const fromEnv = rolesFromEnv.map((r) => (r.name || r.label || r.id).trim()).filter(Boolean);
-    const allCargos = Array.from(new Set([...fromData, ...fromEnv])).sort();
+    const namesFromEnv = rolesFromEnv.map((r) => (r.name || r.label || r.id).trim()).filter(Boolean);
+    const fromData = new Set();
+    data.forEach((item) => {
+      const resolved = resolveRoleName(item);
+      resolved.forEach((n) => fromData.add(n));
+    });
+    const allCargos = Array.from(new Set([...namesFromEnv, ...fromData])).sort();
     allCargos.forEach((cargo) => {
       const option = document.createElement("option");
       option.value = cargo;
@@ -33,11 +35,37 @@
     });
   }
 
+  function resolveRoleName(item) {
+    const names = new Set();
+    const idToName = new Map();
+    rolesFromEnv.forEach((r) => {
+      const name = (r.name || r.label || "").trim();
+      if (name) idToName.set(String(r.id), name);
+    });
+    const label = (item.cargoLabel || "").trim();
+    if (label && !/^\d{17,19}$/.test(label)) names.add(label);
+    else if (label && idToName.has(label)) names.add(idToName.get(label));
+    (item.roleNames || []).forEach((r) => {
+      const n = String(r.name || r.label || "").trim();
+      const id = String(r.id || "").trim();
+      if (n && !/^\d{17,19}$/.test(n)) names.add(n);
+      else if (id && idToName.has(id)) names.add(idToName.get(id));
+    });
+    if (label && /^\d{17,19}$/.test(label) && idToName.has(label)) names.add(idToName.get(label));
+    return Array.from(names);
+  }
+
   function staffHasRole(item, roleName) {
     if (!roleName) return false;
     const r = roleName.trim();
-    if ((item.cargoLabel || "").trim() === r) return true;
-    return (item.roleNames || []).some((x) => String(x.name || "").trim() === r);
+    const roleId = getRoleNameToIdMap().get(r);
+    const itemRoleIds = new Set([
+      ...(item.roles || []).map((x) => String(x)),
+      ...(item.roleNames || []).map((x) => String(x.id || ""))
+    ]);
+    if (roleId && itemRoleIds.has(roleId)) return true;
+    const resolved = resolveRoleName(item);
+    return resolved.includes(r);
   }
 
   function matchesFilters(item) {
@@ -58,12 +86,7 @@
   }
 
   function getRoleNamesForDisplay(item) {
-    const names = new Set();
-    if (item.cargoLabel && item.cargoLabel.trim()) names.add(item.cargoLabel.trim());
-    (item.roleNames || []).forEach((r) => {
-      if (r.name && String(r.name).trim()) names.add(String(r.name).trim());
-    });
-    return Array.from(names);
+    return resolveRoleName(item);
   }
 
   function renderTable() {
@@ -104,16 +127,26 @@
     const container = document.getElementById("relatorioPorCargoContent");
     const section = document.getElementById("relatorioPorCargo");
     if (!container) return;
-    const roleNames = getAllRoleNames();
-    if (roleNames.length === 0) {
+    const canonicalRoles = rolesFromEnv
+      .map((r) => ({ id: String(r.id), name: (r.name || r.label || r.id).trim() }))
+      .filter((r) => r.name);
+    if (canonicalRoles.length === 0) {
       section.style.display = "none";
       return;
     }
     section.style.display = "block";
-    container.innerHTML = roleNames
-      .map((roleName) => {
-        const users = data.filter((item) => staffHasRole(item, roleName)).map((item) => item.nome || item.discordId || "-");
-        return `<div class="relatorio-cargo-item" style="margin-bottom:1rem"><strong>${escapeHtml(roleName)}</strong>: ${users.map((u) => escapeHtml(u)).join(", ") || "-"}</div>`;
+    container.innerHTML = canonicalRoles
+      .map((role) => {
+        const users = data
+          .filter((item) => {
+            const itemIds = new Set([
+              ...(item.roles || []).map(String),
+              ...(item.roleNames || []).map((r) => String(r.id || ""))
+            ]);
+            return itemIds.has(role.id);
+          })
+          .map((item) => item.nome || item.discordId || "-");
+        return `<div class="relatorio-cargo-item" style="margin-bottom:1rem"><strong>${escapeHtml(role.name)}</strong>: ${users.map((u) => escapeHtml(u)).join(", ") || "-"}</div>`;
       })
       .join("");
   }
